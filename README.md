@@ -45,10 +45,10 @@ Then go to http://localhost:8000.
 
 ## Publish it
 
-The site is served by GitHub Pages from the `main` branch, root folder, at
-https://skiproads01.github.io/christianity/. `.nojekyll` stops Pages from
-running the files through Jekyll.
+The site is live at https://skiproads01.github.io/christianity/, served by
+GitHub Pages from the `gh-pages` branch. The `Publish to gh-pages` workflow
+keeps that branch level with `main`, so pushing to `main` publishes.
+`.nojekyll` stops Pages from running the files through Jekyll.
 
-To set this up again on a fresh repository: **Settings > Pages**, set the source
-to **Deploy from a branch**, pick `main` and `/ (root)`, and save. A Pages site
-is publicly viewable on every plan, including from a private repository.
+A Pages site is publicly viewable on every plan, including from a private
+repository.
