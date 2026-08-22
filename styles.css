@@ -639,6 +639,7 @@ footer p { max-width: none; }
 }
 
 .bar h2, .bar h3 { margin: 0; }
+.bar { margin-bottom: 2rem; }
 .bar-sub { border-top: 1px solid var(--rule); margin-top: 2.5rem; padding-top: 1.5rem; }
 .bar-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 
@@ -685,15 +686,6 @@ footer p { max-width: none; }
 
 .icon-btn:hover, .icon-btn:focus-visible { border-color: var(--rule-strong); color: var(--text); }
 
-.storage-note {
-  color: var(--muted);
-  font-family: var(--sans);
-  font-size: 0.8125rem;
-  margin: 0.75rem 0 2rem;
-  max-width: none;
-}
-
-.save-state { color: var(--accent); margin-left: 0.5rem; }
 
 .empty {
   border: 1px dashed var(--rule-strong);
@@ -807,11 +799,76 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .chapter-head .c-title { flex: 1 1 auto; }
 .chapter-tools { display: flex; flex-shrink: 0; gap: 0.15rem; }
 
-.chapter .c-notes { min-height: 5rem; }
+/* ------------------------------------------------------------
+   Notes editor
+   ------------------------------------------------------------ */
+.editor {
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-radius: 3px;
+}
+
+.toolbar {
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  gap: 0.15rem;
+  padding: 0.3rem;
+}
+
+.tb {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--serif);
+  font-size: 0.9375rem;
+  line-height: 1;
+  min-width: 1.9rem;
+  padding: 0.3rem 0.4rem;
+}
+
+.tb:hover, .tb:focus-visible { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.tb-mark { background: var(--accent-soft); }
+
+.chapter .c-notes {
+  font-family: var(--serif);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  min-height: 5rem;
+  padding: 0.6rem;
+}
+
+.c-notes:focus { outline: 2px solid transparent; }
+.editor:focus-within { border-color: var(--accent); }
+
+.c-notes:empty::before {
+  color: var(--faint);
+  content: attr(data-placeholder);
+}
+
+.c-notes p { margin: 0 0 0.6rem; max-width: none; }
+.c-notes p:last-child { margin-bottom: 0; }
+.c-notes ul, .c-notes ol { margin: 0 0 0.6rem; padding-left: 1.4rem; }
+.c-notes li { margin-bottom: 0.2rem; }
+
+.c-notes blockquote {
+  border-left: 2px solid var(--accent);
+  margin: 0.6rem 0;
+  padding-left: 0.9rem;
+}
+
+.c-notes blockquote p { font-size: inherit; font-style: italic; }
+
+.c-notes mark {
+  background: var(--accent-soft);
+  border-radius: 2px;
+  color: inherit;
+  padding: 0.05em 0.15em;
+}
 
 .danger-row { border-top: 1px solid var(--rule); margin-top: 2.5rem; padding-top: 1.5rem; }
 
-.sync-note { color: var(--faint); margin-left: 0.4rem; }
 
 /* A saved book: details as a heading, not a live form */
 .book-header { margin-bottom: 0.5rem; }

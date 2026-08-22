@@ -42,12 +42,6 @@
         <input type="file" id="import-file" accept="application/json" hidden />
       </div>
     </div>
-    <p class="storage-note">
-      Saved in this browser only. Nothing is uploaded. Use <strong>Export</strong>
-      to move notes to another device or to keep a backup.
-      <span class="sync-note" id="sync-note"></span>
-      <span class="save-state" id="save-state" aria-live="polite"></span>
-    </p>
 
     <!-- Library -->
     <div id="library">
@@ -126,7 +120,18 @@
         <button type="button" class="icon-btn c-del" title="Delete chapter" aria-label="Delete chapter">&times;</button>
       </span>
     </div>
-    <textarea class="c-notes" rows="4" placeholder="Notes" aria-label="Chapter notes"></textarea>
+    <div class="editor">
+      <div class="toolbar" role="toolbar" aria-label="Formatting">
+        <button type="button" class="tb" data-cmd="bold" title="Bold"><b>B</b></button>
+        <button type="button" class="tb" data-cmd="italic" title="Italic"><i>I</i></button>
+        <button type="button" class="tb tb-mark" data-cmd="mark" title="Highlight">H</button>
+        <button type="button" class="tb" data-cmd="insertUnorderedList" title="Bulleted list">&bull;</button>
+        <button type="button" class="tb" data-cmd="blockquote" title="Quotation">&ldquo;</button>
+        <button type="button" class="tb" data-cmd="clear" title="Clear formatting">&#10005;</button>
+      </div>
+      <div class="c-notes" contenteditable="true" role="textbox" aria-multiline="true"
+           aria-label="Chapter notes" data-placeholder="Notes"></div>
+    </div>
   </li>
 </template>
 
@@ -190,8 +195,9 @@
 
   // A message set with hold survives the autosave notice that follows it.
   function flash(msg, hold) {
-    if (!hold && now() < holdUntil) return;
     var el = $('save-state');
+    if (!el) return;
+    if (!hold && now() < holdUntil) return;
     el.textContent = msg;
     holdUntil = hold ? now() + 4000 : 0;
     if (flashTimer) clearTimeout(flashTimer);
@@ -306,6 +312,7 @@
 
   function setSyncNote() {
     var el = $('sync-note');
+    if (!el) return;
     if (syncWorks === true) {
       el.textContent = 'Syncing across your signed-in devices.';
     } else if (syncWorks === false) {
@@ -413,9 +420,95 @@
     });
   });
 
-  function grow(ta) {
-    ta.style.height = 'auto';
-    ta.style.height = ta.scrollHeight + 'px';
+  // ---- notes markup ------------------------------------------------------
+  // Notes are HTML now. Everything written to the page or read from a file
+  // goes through this first: only these tags survive, and no attributes do,
+  // so an imported file cannot carry anything executable.
+  var ALLOWED = ['P', 'BR', 'B', 'STRONG', 'I', 'EM', 'MARK', 'UL', 'OL', 'LI',
+                 'BLOCKQUOTE', 'DIV'];
+
+  function sanitize(html) {
+    var box = document.createElement('div');
+    box.innerHTML = html || '';
+    (function walk(node) {
+      var child = node.firstChild;
+      while (child) {
+        var next = child.nextSibling;
+        if (child.nodeType === 1) {
+          if (ALLOWED.indexOf(child.tagName) === -1) {
+            while (child.firstChild) node.insertBefore(child.firstChild, child);
+            node.removeChild(child);
+          } else {
+            for (var i = child.attributes.length - 1; i >= 0; i--) {
+              child.removeAttribute(child.attributes[i].name);
+            }
+            walk(child);
+          }
+        } else if (child.nodeType !== 3) {
+          node.removeChild(child);
+        }
+        child = next;
+      }
+    }(box));
+    return box.innerHTML;
+  }
+
+  // Notes written before the editor existed are plain text.
+  function asHtml(stored) {
+    if (!stored) return '';
+    if (stored.indexOf('<') === -1) {
+      var box = document.createElement('div');
+      box.textContent = stored;
+      return box.innerHTML.replace(/\n/g, '<br>');
+    }
+    return sanitize(stored);
+  }
+
+  function marked() {
+    var sel = window.getSelection();
+    if (!sel.rangeCount) return null;
+    var node = sel.getRangeAt(0).commonAncestorContainer;
+    while (node && node !== document.body) {
+      if (node.nodeType === 1 && node.tagName === 'MARK') return node;
+      node = node.parentNode;
+    }
+    return null;
+  }
+
+  function toggleMark() {
+    var existing = marked();
+    if (existing) {
+      while (existing.firstChild) existing.parentNode.insertBefore(existing.firstChild, existing);
+      existing.parentNode.removeChild(existing);
+      return;
+    }
+    var sel = window.getSelection();
+    if (!sel.rangeCount || sel.isCollapsed) return;
+    var range = sel.getRangeAt(0);
+    var mark = document.createElement('mark');
+    try {
+      range.surroundContents(mark);
+    } catch (e) {
+      // The selection crosses element boundaries; fall back to replacing it.
+      mark.appendChild(range.extractContents());
+      range.insertNode(mark);
+    }
+    sel.removeAllRanges();
+  }
+
+  function exec(cmd) {
+    if (cmd === 'mark') return toggleMark();
+    if (cmd === 'blockquote') return document.execCommand('formatBlock', false, 'blockquote');
+    if (cmd === 'clear') {
+      document.execCommand('removeFormat');
+      var m = marked();
+      if (m) {
+        while (m.firstChild) m.parentNode.insertBefore(m.firstChild, m);
+        m.parentNode.removeChild(m);
+      }
+      return;
+    }
+    document.execCommand(cmd);
   }
 
   function renderChapters() {
@@ -431,11 +524,30 @@
 
       label.value = ch.label || '';
       title.value = ch.title || '';
-      notes.value = ch.notes || '';
+      notes.innerHTML = asHtml(ch.notes);
 
       label.addEventListener('input', function () { ch.label = this.value; save(); });
       title.addEventListener('input', function () { ch.title = this.value; save(); });
-      notes.addEventListener('input', function () { ch.notes = this.value; grow(this); save(); });
+      notes.addEventListener('input', function () { ch.notes = sanitize(this.innerHTML); save(); });
+
+      // Paste as plain text, so copying from a web page does not drag its
+      // styling in with it.
+      notes.addEventListener('paste', function (e) {
+        e.preventDefault();
+        var text = (e.clipboardData || window.clipboardData).getData('text');
+        document.execCommand('insertText', false, text);
+      });
+
+      node.querySelectorAll('.tb').forEach(function (btn) {
+        // mousedown would move focus out of the editor and lose the selection
+        btn.addEventListener('mousedown', function (e) { e.preventDefault(); });
+        btn.addEventListener('click', function () {
+          notes.focus();
+          exec(btn.dataset.cmd);
+          ch.notes = sanitize(notes.innerHTML);
+          save();
+        });
+      });
 
       node.querySelector('.c-up').addEventListener('click', function () { move(index, -1); });
       node.querySelector('.c-down').addEventListener('click', function () { move(index, 1); });
@@ -447,7 +559,6 @@
       });
 
       list.appendChild(node);
-      grow(notes);
     });
   }
 

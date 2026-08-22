@@ -11,7 +11,7 @@ dependencies.
 | `timeline.html` | Fourteen steps from AD 30 to today. The chart draws as you advance and each branch appears at the date it splits. |
 | `denominations.html` | Two charts, five families, ten Protestant traditions, a ten-by-five comparison table, twenty dates. |
 | `terminology.html` | Twelve disputes, 325 to 1980. |
-| `reading.html` | Reading notes by book and chapter. An editor, not a document: add a book, record its publication details, then add chapters and notes under it. |
+| `reading.html` | Research notes by book and chapter. An editor, not a document: add a book, record its publication details, then add chapters and write notes under them. Notes take bold, italic, highlight, lists and quotations. |
 
 ## Layout
 

@@ -18,10 +18,14 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   dated list.
 - `terminology.html` — section two. Twelve dispute entries, each with terms,
   pronunciation, body, figures, and resolution.
-- `reading.html` — reading-notes editor. Books, each with publication fields and
-  an ordered list of chapters holding notes. State lives in `localStorage` under
-  `christianity.reading.v1`; there is no backend and nothing is committed.
-  Export and import move a JSON file in and out, merging on book id.
+- `reading.html` — the Research section: an editor, not a document. Books, each
+  with publication fields that collapse to a heading once saved, and an ordered
+  list of chapters holding notes. Notes are rich text, stored as HTML and run
+  through a tag allowlist on every read and write, so an imported file cannot
+  carry anything executable. Pasting inserts plain text. State lives in
+  `localStorage` under `christianity.reading.v1` and syncs through the Worker's
+  `/api/notes` when it is reachable; export and import move a JSON file in and
+  out, merging on book id.
 - `styles.css` — every rule for every page.
 - `site.webmanifest`, `assets/icon-*.png` — home-screen name and icon. The icons
   are square crops of `assets/pantocrator.jpg`; regenerate all four sizes
