@@ -11,7 +11,7 @@ jobs:
   kv:
     runs-on: ubuntu-latest
     env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN_DELTA }}
       CLOUDFLARE_ACCOUNT_ID: 26822b853a433adaf9a917ea55731830
     steps:
       - name: Create or find the NOTES namespace
