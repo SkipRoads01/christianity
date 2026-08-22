@@ -4,7 +4,7 @@ compatibility_date = "2026-08-01"
 
 # Pin the account id. Without it wrangler lists accounts to work out where to
 # deploy, and a token scoped to one account cannot do that lookup.
-account_id = "REPLACE_WITH_CLOUDFLARE_ACCOUNT_ID"
+account_id = "26822b853a433adaf9a917ea55731830"
 
 [assets]
 directory = "./dist"
