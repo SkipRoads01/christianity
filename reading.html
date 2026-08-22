@@ -59,6 +59,14 @@
     <div id="book" hidden>
       <p class="crumb"><button type="button" class="linkish" id="back">&larr; All books</button></p>
 
+      <div class="book-header" id="book-header" hidden>
+        <h3 class="bh-title" id="bh-title"></h3>
+        <p class="bh-meta" id="bh-meta"></p>
+        <p class="bh-note" id="bh-note"></p>
+        <button type="button" class="linkish" id="edit-book">Edit book details</button>
+      </div>
+
+      <div id="book-form">
       <div class="fields">
         <label class="field field-wide">
           <span>Title</span>
@@ -85,6 +93,10 @@
           <span>Note on the book</span>
           <textarea id="f-note" rows="3"></textarea>
         </label>
+      </div>
+      <p class="form-actions">
+        <button type="button" class="btn btn-primary" id="save-book">Save book</button>
+      </p>
       </div>
 
       <div class="bar bar-sub">
@@ -279,7 +291,7 @@
           var fresh = byId(current.id);
           if (!fresh || fresh.deleted) { closeBook(); return; }
           current = fresh;
-          fillFields();
+          if (editing) fillFields(); else showHeader();
           renderChapters();
         } else {
           renderLibrary();
@@ -330,7 +342,7 @@
 
       a.appendChild(title);
       a.appendChild(meta);
-      a.addEventListener('click', function () { openBook(b.id); });
+      a.addEventListener('click', function () { openBook(b.id, false); });
       li.appendChild(a);
       list.appendChild(li);
     });
@@ -346,15 +358,43 @@
     FIELDS.forEach(function (pair) { $(pair[0]).value = current[pair[1]] || ''; });
   }
 
-  function openBook(id) {
+  // A book's details are a form while you are entering them and a heading
+  // afterwards, so that once the book is recorded the page is about chapters.
+  var editing = false;
+
+  function renderHeader() {
+    $('bh-title').textContent = current.title || 'Untitled';
+    var bits = [current.author, current.publisher, current.year, current.details]
+      .filter(function (x) { return x; });
+    $('bh-meta').textContent = bits.join(' \u00b7 ');
+    $('bh-meta').hidden = bits.length === 0;
+    $('bh-note').textContent = current.note || '';
+    $('bh-note').hidden = !current.note;
+  }
+
+  function showForm() {
+    editing = true;
+    $('book-header').hidden = true;
+    $('book-form').hidden = false;
+  }
+
+  function showHeader() {
+    editing = false;
+    renderHeader();
+    $('book-form').hidden = true;
+    $('book-header').hidden = false;
+  }
+
+  function openBook(id, edit) {
     current = byId(id);
     if (!current || current.deleted) return;
     fillFields();
     renderChapters();
+    if (edit) showForm(); else showHeader();
     $('library').hidden = true;
     $('book').hidden = false;
     window.scrollTo(0, 0);
-    $('f-title').focus();
+    if (edit) $('f-title').focus();
   }
 
   function closeBook() {
@@ -426,7 +466,7 @@
                  details: '', note: '', chapters: [], updatedAt: now() };
     data.books.push(book);
     save();
-    openBook(book.id);
+    openBook(book.id, true);
   });
 
   $('new-chapter').addEventListener('click', function () {
@@ -446,6 +486,18 @@
     persist();
     schedulePush();
     closeBook();
+  });
+
+  $('save-book').addEventListener('click', function () {
+    persist();
+    schedulePush();
+    showHeader();
+    flash('Saved');
+  });
+
+  $('edit-book').addEventListener('click', function () {
+    showForm();
+    $('f-title').focus();
   });
 
   $('back').addEventListener('click', closeBook);

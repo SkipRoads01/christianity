@@ -812,3 +812,20 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .danger-row { border-top: 1px solid var(--rule); margin-top: 2.5rem; padding-top: 1.5rem; }
 
 .sync-note { color: var(--faint); margin-left: 0.4rem; }
+
+/* A saved book: details as a heading, not a live form */
+.book-header { margin-bottom: 0.5rem; }
+
+.bh-title { font-size: 1.5rem; font-weight: 500; margin: 0 0 0.3rem; }
+
+.bh-meta {
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 0.9375rem;
+  margin: 0 0 0.6rem;
+  max-width: none;
+}
+
+.bh-note { margin: 0 0 0.8rem; }
+
+.form-actions { margin-top: 1.25rem; }
