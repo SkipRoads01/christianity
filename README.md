@@ -1,14 +1,27 @@
-# christianity
+# Christianity: History, Theology, and Civilization
 
-A static website. No build step, no dependencies.
+Research and reading notes, published as a static website. No build step, no
+dependencies — every page is hand-written HTML against one stylesheet.
 
-## Files
+## Sections
+
+| Page | Contents |
+| --- | --- |
+| `index.html` | Home. Scope of the project and links to the sections. |
+| `denominations.html` | Two thousand years of branching: two timeline charts, the five main families, the ten Protestant subdivisions, a ten-by-five comparison table, and twenty key dates. |
+| `terminology.html` | Twelve doctrinal disputes that turned on single words, from *homoousios* in 325 to *kerygma* in the twentieth century. |
+
+## Layout
 
 | Path | Purpose |
 | --- | --- |
-| `index.html` | The home page and the only page so far. |
-| `styles.css` | All styling. Colors live in the `:root` block at the top. |
+| `styles.css` | All styling. Colors are custom properties in the `:root` block at the top, with a dark palette in the `prefers-color-scheme` block below it. |
+| `sources/` | The original reference PDFs each section was built from. |
 | `assets/` | Images and other media. |
+
+The two timeline charts are inline SVG inside `denominations.html`. They use the
+same CSS custom properties as the rest of the page, so they follow the light and
+dark palettes without a second copy.
 
 ## View the site locally
 
@@ -22,12 +35,12 @@ Then go to http://localhost:8000.
 
 ## Publish it
 
-The repository is private, so the site isn't online yet. To publish with GitHub
+The repository is private, so the site isn't online. To publish with GitHub
 Pages, go to **Settings > Pages**, set the source to the `main` branch and the
-root folder, and save. Publishing a page from a private repository requires a
-paid GitHub plan; on the free plan, make the repository public first.
+root folder, and save. Publishing from a private repository requires a paid
+GitHub plan; on the free plan, make the repository public first.
 
-## Status
+## Still to write
 
-The page is a scaffold. The copy, the section names, and the structure are all
-placeholders waiting on direction.
+The third line of the title. Nothing yet covers what Christian institutions did
+to law, learning, art, and the shape of daily life.
