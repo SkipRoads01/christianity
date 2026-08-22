@@ -1,0 +1,165 @@
+/* ============================================================
+   Base tokens. Light palette on :root, dark overrides below.
+   ============================================================ */
+:root {
+  --bg: #fbf9f5;
+  --surface: #ffffff;
+  --text: #1c1a17;
+  --muted: #5f594f;
+  --rule: #e4ded2;
+  --accent: #7a5c2e;
+  --measure: 34rem;
+  --serif: Iowan Old Style, Palatino Linotype, Palatino, Georgia, serif;
+  --sans: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161513;
+    --surface: #1e1c19;
+    --text: #ece7dd;
+    --muted: #a9a094;
+    --rule: #302c27;
+    --accent: #c9a668;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--serif);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+}
+
+/* ============================================================
+   Layout
+   ============================================================ */
+.wrap {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  padding: 2.5rem 0 1.75rem;
+}
+
+.masthead h1 {
+  font-size: clamp(2rem, 6vw, 2.75rem);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  margin: 0 0 0.4rem;
+}
+
+.tagline {
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 0.9375rem;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+nav {
+  margin-top: 1.5rem;
+  font-family: var(--sans);
+  font-size: 0.9375rem;
+}
+
+nav a {
+  color: var(--muted);
+  margin-right: 1.25rem;
+  text-decoration: none;
+}
+
+nav a:hover,
+nav a:focus-visible { color: var(--accent); text-decoration: underline; }
+
+main { padding: 3rem 0 4rem; }
+
+section + section {
+  border-top: 1px solid var(--rule);
+  margin-top: 3rem;
+  padding-top: 3rem;
+}
+
+h2 {
+  font-size: 1.375rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 0 0 1rem;
+}
+
+p { max-width: var(--measure); }
+p + p { margin-top: 1rem; }
+
+/* ============================================================
+   Pull quote for a scripture passage
+   ============================================================ */
+blockquote {
+  border-left: 2px solid var(--accent);
+  margin: 2rem 0;
+  max-width: var(--measure);
+  padding-left: 1.25rem;
+}
+
+blockquote p {
+  font-size: 1.1875rem;
+  font-style: italic;
+  margin: 0;
+}
+
+blockquote cite {
+  color: var(--muted);
+  display: block;
+  font-family: var(--sans);
+  font-size: 0.8125rem;
+  font-style: normal;
+  letter-spacing: 0.06em;
+  margin-top: 0.75rem;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   Card grid — swap in real entries as the site grows
+   ============================================================ */
+.cards {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  margin-top: 1.5rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 1.25rem;
+}
+
+.card h3 {
+  font-size: 1.0625rem;
+  font-weight: 500;
+  margin: 0 0 0.5rem;
+}
+
+.card p {
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+footer {
+  border-top: 1px solid var(--rule);
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 0.875rem;
+  padding: 2rem 0 3rem;
+}
