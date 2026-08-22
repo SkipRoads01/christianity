@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reading notes &middot; Christianity: History, Theology, and Civilization</title>
+<meta name="description" content="Reading notes by book and chapter." />
+<link rel="icon" href="assets/icon-32.png" sizes="32x32" />
+<link rel="apple-touch-icon" href="assets/icon-180.png" />
+<link rel="manifest" href="site.webmanifest" />
+<meta name="apple-mobile-web-app-title" content="Christianity" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#fbf9f5" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#161513" media="(prefers-color-scheme: dark)" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <h1><a href="index.html">Christianity: History, Theology, and Civilization</a></h1>
+    <p class="tagline">Research and reading notes.</p>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="timeline.html">Timeline</a>
+      <a href="denominations.html">Denominations</a>
+      <a href="terminology.html">Terminology</a>
+      <a href="reading.html" aria-current="page">Reading notes</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section>
+    <div class="bar">
+      <h2>Reading notes</h2>
+      <div class="bar-actions">
+        <button type="button" class="btn btn-primary" id="new-book">Add book</button>
+        <button type="button" class="btn" id="export">Export</button>
+        <button type="button" class="btn" id="import">Import</button>
+        <input type="file" id="import-file" accept="application/json" hidden />
+      </div>
+    </div>
+    <p class="storage-note">
+      Saved in this browser only. Nothing is uploaded. Use <strong>Export</strong>
+      to move notes to another device or to keep a backup.
+      <span class="save-state" id="save-state" aria-live="polite"></span>
+    </p>
+
+    <!-- Library -->
+    <div id="library">
+      <p class="empty" id="empty" hidden>No books yet.</p>
+      <ul class="books" id="books"></ul>
+    </div>
+
+    <!-- One book -->
+    <div id="book" hidden>
+      <p class="crumb"><button type="button" class="linkish" id="back">&larr; All books</button></p>
+
+      <div class="fields">
+        <label class="field field-wide">
+          <span>Title</span>
+          <input type="text" id="f-title" autocomplete="off" />
+        </label>
+        <label class="field field-wide">
+          <span>Author</span>
+          <input type="text" id="f-author" autocomplete="off" />
+        </label>
+        <label class="field">
+          <span>Publisher</span>
+          <input type="text" id="f-publisher" autocomplete="off" />
+        </label>
+        <label class="field">
+          <span>Year</span>
+          <input type="text" id="f-year" inputmode="numeric" autocomplete="off" />
+        </label>
+        <label class="field field-wide">
+          <span>Publication details</span>
+          <input type="text" id="f-details" autocomplete="off"
+                 placeholder="Edition, translator, series, ISBN" />
+        </label>
+        <label class="field field-wide">
+          <span>Note on the book</span>
+          <textarea id="f-note" rows="3"></textarea>
+        </label>
+      </div>
+
+      <div class="bar bar-sub">
+        <h3>Chapters</h3>
+        <button type="button" class="btn" id="new-chapter">Add chapter</button>
+      </div>
+
+      <p class="empty" id="empty-chapters" hidden>No chapters yet.</p>
+      <ol class="chapters" id="chapters"></ol>
+
+      <p class="danger-row">
+        <button type="button" class="linkish danger" id="delete-book">Delete this book</button>
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<template id="tpl-chapter">
+  <li class="chapter">
+    <div class="chapter-head">
+      <input type="text" class="c-label" placeholder="No." aria-label="Chapter number" autocomplete="off" />
+      <input type="text" class="c-title" placeholder="Chapter title" aria-label="Chapter title" autocomplete="off" />
+      <span class="chapter-tools">
+        <button type="button" class="icon-btn c-up" title="Move up" aria-label="Move up">&uarr;</button>
+        <button type="button" class="icon-btn c-down" title="Move down" aria-label="Move down">&darr;</button>
+        <button type="button" class="icon-btn c-del" title="Delete chapter" aria-label="Delete chapter">&times;</button>
+      </span>
+    </div>
+    <textarea class="c-notes" rows="4" placeholder="Notes" aria-label="Chapter notes"></textarea>
+  </li>
+</template>
+
+<script>
+(function () {
+  'use strict';
+
+  var KEY = 'christianity.reading.v1';
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ---- storage -----------------------------------------------------------
+  // Private browsing and blocked site data both make localStorage throw, so
+  // every read and write is guarded and the page still works without it.
+  var data = { version: 1, books: [] };
+  var storageWorks = true;
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.books)) data = parsed;
+      }
+    } catch (e) {
+      storageWorks = false;
+    }
+  }
+
+  var saveTimer = null;
+  function save() {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () {
+      try {
+        localStorage.setItem(KEY, JSON.stringify(data));
+        flash(storageWorks ? 'Saved' : '');
+      } catch (e) {
+        storageWorks = false;
+        flash('Not saved: this browser is blocking storage. Export to keep your work.', true);
+      }
+    }, 250);
+  }
+
+  var flashTimer = null;
+  var holdUntil = 0;
+
+  // A message set with hold survives the autosave notice that follows it,
+  // so "Imported 3 books" is not immediately replaced by "Saved".
+  function flash(msg, hold) {
+    if (!hold && Date.now() < holdUntil) return;
+    var el = $('save-state');
+    el.textContent = msg;
+    holdUntil = hold ? Date.now() + 4000 : 0;
+    if (flashTimer) clearTimeout(flashTimer);
+    if (msg) {
+      flashTimer = setTimeout(function () {
+        el.textContent = '';
+        holdUntil = 0;
+      }, hold ? 4000 : 1600);
+    }
+  }
+
+  function uid() {
+    return 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  // ---- library -----------------------------------------------------------
+  function byId(id) {
+    for (var i = 0; i < data.books.length; i++) {
+      if (data.books[i].id === id) return data.books[i];
+    }
+    return null;
+  }
+
+  function renderLibrary() {
+    var list = $('books');
+    list.textContent = '';
+    $('empty').hidden = data.books.length > 0;
+
+    data.books.forEach(function (b) {
+      var li = document.createElement('li');
+      var a = document.createElement('button');
+      a.type = 'button';
+      a.className = 'book-row';
+
+      var title = document.createElement('span');
+      title.className = 'book-title';
+      title.textContent = b.title || 'Untitled';
+
+      var meta = document.createElement('span');
+      meta.className = 'book-meta';
+      var bits = [];
+      if (b.author) bits.push(b.author);
+      if (b.year) bits.push(b.year);
+      bits.push(b.chapters.length + (b.chapters.length === 1 ? ' chapter' : ' chapters'));
+      meta.textContent = bits.join(' · ');
+
+      a.appendChild(title);
+      a.appendChild(meta);
+      a.addEventListener('click', function () { openBook(b.id); });
+      li.appendChild(a);
+      list.appendChild(li);
+    });
+  }
+
+  // ---- one book ----------------------------------------------------------
+  var current = null;
+
+  var FIELDS = [
+    ['f-title', 'title'], ['f-author', 'author'], ['f-publisher', 'publisher'],
+    ['f-year', 'year'], ['f-details', 'details'], ['f-note', 'note']
+  ];
+
+  function openBook(id) {
+    current = byId(id);
+    if (!current) return;
+    FIELDS.forEach(function (pair) { $(pair[0]).value = current[pair[1]] || ''; });
+    renderChapters();
+    $('library').hidden = true;
+    $('book').hidden = false;
+    window.scrollTo(0, 0);
+    $('f-title').focus();
+  }
+
+  function closeBook() {
+    current = null;
+    $('book').hidden = true;
+    $('library').hidden = false;
+    renderLibrary();
+    window.scrollTo(0, 0);
+  }
+
+  FIELDS.forEach(function (pair) {
+    $(pair[0]).addEventListener('input', function () {
+      if (!current) return;
+      current[pair[1]] = this.value;
+      save();
+    });
+  });
+
+  function grow(ta) {
+    ta.style.height = 'auto';
+    ta.style.height = ta.scrollHeight + 'px';
+  }
+
+  function renderChapters() {
+    var list = $('chapters');
+    list.textContent = '';
+    $('empty-chapters').hidden = current.chapters.length > 0;
+
+    current.chapters.forEach(function (ch, index) {
+      var node = $('tpl-chapter').content.firstElementChild.cloneNode(true);
+      var label = node.querySelector('.c-label');
+      var title = node.querySelector('.c-title');
+      var notes = node.querySelector('.c-notes');
+
+      label.value = ch.label || '';
+      title.value = ch.title || '';
+      notes.value = ch.notes || '';
+
+      label.addEventListener('input', function () { ch.label = this.value; save(); });
+      title.addEventListener('input', function () { ch.title = this.value; save(); });
+      notes.addEventListener('input', function () { ch.notes = this.value; grow(this); save(); });
+
+      node.querySelector('.c-up').addEventListener('click', function () { move(index, -1); });
+      node.querySelector('.c-down').addEventListener('click', function () { move(index, 1); });
+      node.querySelector('.c-del').addEventListener('click', function () {
+        if (!window.confirm('Delete this chapter and its notes?')) return;
+        current.chapters.splice(index, 1);
+        save();
+        renderChapters();
+      });
+
+      list.appendChild(node);
+      grow(notes);
+    });
+  }
+
+  function move(index, delta) {
+    var to = index + delta;
+    if (to < 0 || to >= current.chapters.length) return;
+    var ch = current.chapters.splice(index, 1)[0];
+    current.chapters.splice(to, 0, ch);
+    save();
+    renderChapters();
+  }
+
+  // ---- actions -----------------------------------------------------------
+  $('new-book').addEventListener('click', function () {
+    var book = { id: uid(), title: '', author: '', publisher: '', year: '',
+                 details: '', note: '', chapters: [] };
+    data.books.push(book);
+    save();
+    openBook(book.id);
+  });
+
+  $('new-chapter').addEventListener('click', function () {
+    current.chapters.push({ id: uid(), label: '', title: '', notes: '' });
+    save();
+    renderChapters();
+    var last = $('chapters').lastElementChild;
+    if (last) last.querySelector('.c-label').focus();
+  });
+
+  $('delete-book').addEventListener('click', function () {
+    if (!window.confirm('Delete "' + (current.title || 'Untitled') + '" and all its notes?')) return;
+    data.books = data.books.filter(function (b) { return b.id !== current.id; });
+    save();
+    closeBook();
+  });
+
+  $('back').addEventListener('click', closeBook);
+
+  $('export').addEventListener('click', function () {
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'reading-notes.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  });
+
+  $('import').addEventListener('click', function () { $('import-file').click(); });
+
+  $('import-file').addEventListener('change', function () {
+    var file = this.files && this.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var incoming;
+      try {
+        incoming = JSON.parse(reader.result);
+      } catch (e) {
+        window.alert('That file is not valid JSON.');
+        return;
+      }
+      if (!incoming || !Array.isArray(incoming.books)) {
+        window.alert('That file has no books in it.');
+        return;
+      }
+      // Merge by id: a book already here is replaced, a new one is added.
+      incoming.books.forEach(function (b) {
+        if (!b.id) b.id = uid();
+        if (!Array.isArray(b.chapters)) b.chapters = [];
+        var existing = byId(b.id);
+        if (existing) {
+          data.books[data.books.indexOf(existing)] = b;
+        } else {
+          data.books.push(b);
+        }
+      });
+      save();
+      if (current) closeBook(); else renderLibrary();
+      flash('Imported ' + incoming.books.length +
+            (incoming.books.length === 1 ? ' book' : ' books'), true);
+    };
+    reader.readAsText(file);
+    this.value = '';
+  });
+
+  // ---- start -------------------------------------------------------------
+  load();
+  renderLibrary();
+  if (!storageWorks) {
+    flash('This browser is blocking storage, so nothing will be kept.', true);
+  }
+}());
+</script>
+
+</body>
+</html>

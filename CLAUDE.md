@@ -18,6 +18,10 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   dated list.
 - `terminology.html` — section two. Twelve dispute entries, each with terms,
   pronunciation, body, figures, and resolution.
+- `reading.html` — reading-notes editor. Books, each with publication fields and
+  an ordered list of chapters holding notes. State lives in `localStorage` under
+  `christianity.reading.v1`; there is no backend and nothing is committed.
+  Export and import move a JSON file in and out, merging on book id.
 - `styles.css` — every rule for every page.
 - `site.webmanifest`, `assets/icon-*.png` — home-screen name and icon. The icons
   are square crops of `assets/pantocrator.jpg`; regenerate all four sizes
@@ -44,7 +48,12 @@ not in the script, so it survives with JavaScript disabled.
   adjusted figures, no added assertions. Anything that is not from a source is a
   plain functional label: a heading, a nav item, a field name, a count, a button.
   No taglines, no framing sentences, no summaries, no invented section titles.
+  Interface strings are the one exception: a button, a field name, an empty
+  state, or a line explaining where data is stored has to say something. Keep
+  those to the shortest plain statement that does the job.
 - Honor `prefers-reduced-motion` in anything animated.
+- Reading notes are private. Never add anything that uploads, syncs, or commits
+  them, and never seed the editor with example books.
 - Prose follows the Google developer documentation style guide: second person,
   active voice, present tense, sentence case headings.
 

@@ -11,6 +11,7 @@ dependencies.
 | `timeline.html` | Fourteen steps from AD 30 to today. The chart draws as you advance and each branch appears at the date it splits. |
 | `denominations.html` | Two charts, five families, ten Protestant traditions, a ten-by-five comparison table, twenty dates. |
 | `terminology.html` | Twelve disputes, 325 to 1980. |
+| `reading.html` | Reading notes by book and chapter. An editor, not a document: add a book, record its publication details, then add chapters and notes under it. |
 
 ## Layout
 
@@ -32,6 +33,15 @@ year-to-x scale appears twice: once in the markup and once in the script. Change
 one and change the other. The page respects `prefers-reduced-motion`, and every
 step is in the HTML rather than generated, so the content is there with
 JavaScript off — it is only the pacing that needs the script.
+
+## Where reading notes are kept
+
+In the browser, under the `localStorage` key `christianity.reading.v1`. Nothing
+is sent anywhere and nothing is committed, so notes stay private even though the
+site is public. The consequence is that they live in one browser on one device:
+**Export** writes a `reading-notes.json` file and **Import** merges one back in,
+which is how notes move between devices or get backed up. Import matches on book
+id, so re-importing a file updates those books rather than duplicating them.
 
 ## View the site locally
 
