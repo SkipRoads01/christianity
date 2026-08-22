@@ -798,3 +798,5 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .chapter .c-notes { min-height: 5rem; }
 
 .danger-row { border-top: 1px solid var(--rule); margin-top: 2.5rem; padding-top: 1.5rem; }
+
+.sync-note { color: var(--faint); margin-left: 0.4rem; }

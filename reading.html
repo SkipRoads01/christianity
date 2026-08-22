@@ -46,6 +46,7 @@
     <p class="storage-note">
       Saved in this browser only. Nothing is uploaded. Use <strong>Export</strong>
       to move notes to another device or to keep a backup.
+      <span class="sync-note" id="sync-note"></span>
       <span class="save-state" id="save-state" aria-live="polite"></span>
     </p>
 
@@ -123,13 +124,21 @@
   'use strict';
 
   var KEY = 'christianity.reading.v1';
-  var $ = function (id) { return document.getElementById(id); };
+  var API = '/api/notes';
+  var PULL_MS = 30000;
+  var PUSH_MS = 2000;
+  var TOMBSTONE_DAYS = 90;
 
-  // ---- storage -----------------------------------------------------------
-  // Private browsing and blocked site data both make localStorage throw, so
-  // every read and write is guarded and the page still works without it.
+  var $ = function (id) { return document.getElementById(id); };
+  var now = function () { return Date.now(); };
+
+  // ---- state -------------------------------------------------------------
+  // localStorage is the source of truth for this device and works offline.
+  // The API is a reconciler on top of it, not a dependency.
   var data = { version: 1, books: [] };
   var storageWorks = true;
+  var syncWorks = null;      // null until the first attempt settles
+  var current = null;
 
   function load() {
     try {
@@ -143,30 +152,37 @@
     }
   }
 
-  var saveTimer = null;
+  function persist() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(data));
+      return true;
+    } catch (e) {
+      storageWorks = false;
+      return false;
+    }
+  }
+
+  var saveTimer = null, pushTimer = null;
+
   function save() {
+    if (current) current.updatedAt = now();
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(function () {
-      try {
-        localStorage.setItem(KEY, JSON.stringify(data));
-        flash(storageWorks ? 'Saved' : '');
-      } catch (e) {
-        storageWorks = false;
-        flash('Not saved: this browser is blocking storage. Export to keep your work.', true);
-      }
+      flash(persist() ? 'Saved'
+        : 'Not saved: this browser is blocking storage. Export to keep your work.',
+        !storageWorks);
+      schedulePush();
     }, 250);
   }
 
-  var flashTimer = null;
-  var holdUntil = 0;
+  var flashTimer = null, holdUntil = 0;
 
-  // A message set with hold survives the autosave notice that follows it,
-  // so "Imported 3 books" is not immediately replaced by "Saved".
+  // A message set with hold survives the autosave notice that follows it.
   function flash(msg, hold) {
-    if (!hold && Date.now() < holdUntil) return;
+    if (!hold && now() < holdUntil) return;
     var el = $('save-state');
     el.textContent = msg;
-    holdUntil = hold ? Date.now() + 4000 : 0;
+    holdUntil = hold ? now() + 4000 : 0;
     if (flashTimer) clearTimeout(flashTimer);
     if (msg) {
       flashTimer = setTimeout(function () {
@@ -177,10 +193,13 @@
   }
 
   function uid() {
-    return 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    return 'b' + now().toString(36) + Math.random().toString(36).slice(2, 8);
   }
 
-  // ---- library -----------------------------------------------------------
+  function live() {
+    return data.books.filter(function (b) { return !b.deleted; });
+  }
+
   function byId(id) {
     for (var i = 0; i < data.books.length; i++) {
       if (data.books[i].id === id) return data.books[i];
@@ -188,12 +207,111 @@
     return null;
   }
 
+  // ---- merge -------------------------------------------------------------
+  // Last write wins per book, so two devices editing different books never
+  // conflict. A deleted book leaves a tombstone, otherwise the other device
+  // would resurrect it on the next pull.
+  function merge(mine, theirs) {
+    var out = {};
+    var cutoff = now() - TOMBSTONE_DAYS * 86400000;
+
+    function take(book) {
+      if (!book || !book.id) return;
+      if (book.deleted && (book.updatedAt || 0) < cutoff) return;  // aged out
+      var seen = out[book.id];
+      if (!seen || (book.updatedAt || 0) > (seen.updatedAt || 0)) out[book.id] = book;
+    }
+
+    mine.forEach(take);
+    theirs.forEach(take);
+
+    return Object.keys(out).map(function (k) { return out[k]; })
+      .sort(function (a, b) { return (b.updatedAt || 0) - (a.updatedAt || 0); });
+  }
+
+  // ---- sync --------------------------------------------------------------
+  function typing() {
+    var el = document.activeElement;
+    return !!el && (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT');
+  }
+
+  function schedulePush() {
+    if (syncWorks === false) return;
+    if (pushTimer) clearTimeout(pushTimer);
+    pushTimer = setTimeout(push, PUSH_MS);
+  }
+
+  function push() {
+    if (syncWorks === false) return;
+    fetch(API, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ version: 1, books: data.books })
+    }).then(function (r) {
+      syncWorks = r.ok;
+      if (r.ok) flash('Synced');
+    }).catch(function () {
+      syncWorks = false;
+      setSyncNote();
+    });
+  }
+
+  function pull() {
+    if (syncWorks === false || !navigator.onLine) return;
+    fetch(API, { headers: { 'accept': 'application/json' } })
+      .then(function (r) {
+        if (!r.ok) throw new Error(String(r.status));
+        return r.json();
+      })
+      .then(function (remote) {
+        syncWorks = true;
+        setSyncNote();
+        if (!remote || !Array.isArray(remote.books)) return;
+
+        var before = JSON.stringify(data.books);
+        data.books = merge(data.books, remote.books);
+        if (JSON.stringify(data.books) === before) return;
+
+        persist();
+        // Never repaint a field the user is in the middle of: the merged data
+        // is already saved and appears at the next natural render.
+        if (typing()) return;
+        if (current) {
+          var fresh = byId(current.id);
+          if (!fresh || fresh.deleted) { closeBook(); return; }
+          current = fresh;
+          fillFields();
+          renderChapters();
+        } else {
+          renderLibrary();
+        }
+        flash('Updated from sync', true);
+      })
+      .catch(function () {
+        syncWorks = false;
+        setSyncNote();
+      });
+  }
+
+  function setSyncNote() {
+    var el = $('sync-note');
+    if (syncWorks === true) {
+      el.textContent = 'Syncing across your signed-in devices.';
+    } else if (syncWorks === false) {
+      el.textContent = 'Not syncing right now. Notes are still saved on this device.';
+    } else {
+      el.textContent = '';
+    }
+  }
+
+  // ---- library -----------------------------------------------------------
   function renderLibrary() {
     var list = $('books');
     list.textContent = '';
-    $('empty').hidden = data.books.length > 0;
+    var books = live();
+    $('empty').hidden = books.length > 0;
 
-    data.books.forEach(function (b) {
+    books.forEach(function (b) {
       var li = document.createElement('li');
       var a = document.createElement('button');
       a.type = 'button';
@@ -220,17 +338,19 @@
   }
 
   // ---- one book ----------------------------------------------------------
-  var current = null;
-
   var FIELDS = [
     ['f-title', 'title'], ['f-author', 'author'], ['f-publisher', 'publisher'],
     ['f-year', 'year'], ['f-details', 'details'], ['f-note', 'note']
   ];
 
+  function fillFields() {
+    FIELDS.forEach(function (pair) { $(pair[0]).value = current[pair[1]] || ''; });
+  }
+
   function openBook(id) {
     current = byId(id);
-    if (!current) return;
-    FIELDS.forEach(function (pair) { $(pair[0]).value = current[pair[1]] || ''; });
+    if (!current || current.deleted) return;
+    fillFields();
     renderChapters();
     $('library').hidden = true;
     $('book').hidden = false;
@@ -304,7 +424,7 @@
   // ---- actions -----------------------------------------------------------
   $('new-book').addEventListener('click', function () {
     var book = { id: uid(), title: '', author: '', publisher: '', year: '',
-                 details: '', note: '', chapters: [] };
+                 details: '', note: '', chapters: [], updatedAt: now() };
     data.books.push(book);
     save();
     openBook(book.id);
@@ -320,8 +440,12 @@
 
   $('delete-book').addEventListener('click', function () {
     if (!window.confirm('Delete "' + (current.title || 'Untitled') + '" and all its notes?')) return;
-    data.books = data.books.filter(function (b) { return b.id !== current.id; });
-    save();
+    // Replace with a tombstone so the deletion reaches other devices.
+    var index = data.books.indexOf(current);
+    data.books[index] = { id: current.id, deleted: true, updatedAt: now(), chapters: [] };
+    current = null;
+    persist();
+    schedulePush();
     closeBook();
   });
 
@@ -357,18 +481,16 @@
         window.alert('That file has no books in it.');
         return;
       }
-      // Merge by id: a book already here is replaced, a new one is added.
+      // An import is an explicit choice, so it wins over what is already here.
+      var stamp = now();
       incoming.books.forEach(function (b) {
         if (!b.id) b.id = uid();
         if (!Array.isArray(b.chapters)) b.chapters = [];
-        var existing = byId(b.id);
-        if (existing) {
-          data.books[data.books.indexOf(existing)] = b;
-        } else {
-          data.books.push(b);
-        }
+        b.updatedAt = stamp;
       });
-      save();
+      data.books = merge(data.books, incoming.books);
+      persist();
+      schedulePush();
       if (current) closeBook(); else renderLibrary();
       flash('Imported ' + incoming.books.length +
             (incoming.books.length === 1 ? ' book' : ' books'), true);
@@ -383,6 +505,13 @@
   if (!storageWorks) {
     flash('This browser is blocking storage, so nothing will be kept.', true);
   }
+
+  pull();
+  setInterval(function () {
+    if (document.visibilityState === 'visible') pull();
+  }, PULL_MS);
+  window.addEventListener('focus', pull);
+  window.addEventListener('online', function () { syncWorks = null; pull(); });
 }());
 </script>
 
