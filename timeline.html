@@ -32,6 +32,9 @@
 
 <div class="timeline-bar" id="timeline-bar">
   <div class="wrap-bar">
+    <p class="bar-advance">
+      <button type="button" class="btn btn-primary" id="advance-top">Advance</button>
+    </p>
     <div class="chart-frame chart-frame-live" id="chart-scroll">
 <svg class="chart chart-live" viewBox="0 0 1100 178" role="img" aria-label="Timeline of Christian division from AD 30 to today, revealed step by step">
   <line class="rule-v" x1="91.4" y1="26" x2="91.4" y2="174" />
@@ -232,7 +235,7 @@
         <span class="advance-label">Move forward</span>
         <span class="advance-next" id="advance-next"></span>
       </button>
-      <button type="button" class="advance-link" id="reveal-all">Reveal everything</button>
+      <button type="button" class="advance-link" id="reveal-all">Full timeline</button>
     </div>
 
     <div class="advance advance-done" id="done" hidden>
@@ -350,11 +353,13 @@
     if (next >= STEPS.length) {
       advance.hidden = true;
       done.hidden = false;
+      document.getElementById('advance-top').hidden = true;
       return;
     }
     advance.hidden = false;
     done.hidden = true;
     nextLabel.textContent = TITLES[next];
+    document.getElementById('advance-top').hidden = false;
   }
 
   function show(i) {
@@ -376,9 +381,12 @@
     }
   }
 
-  btn.addEventListener('click', function () {
+  function forward() {
     if (current + 1 < STEPS.length) goTo(current + 1, true);
-  });
+  }
+
+  btn.addEventListener('click', forward);
+  document.getElementById('advance-top').addEventListener('click', forward);
 
   document.getElementById('reveal-all').addEventListener('click', function () {
     goTo(STEPS.length - 1, false);

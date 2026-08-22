@@ -902,3 +902,11 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+
+/* Advance control sitting with the chart, for when the steps are scrolled away */
+.bar-advance {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 0.5rem;
+  max-width: none;
+}
