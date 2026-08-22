@@ -44,7 +44,10 @@ Then go to http://localhost:8000.
 
 ## Publish it
 
-The repository is private, so the site isn't online. To publish with GitHub
-Pages, go to **Settings > Pages**, set the source to the `main` branch and the
-root folder, and save. Publishing from a private repository requires a paid
-GitHub plan; on the free plan, make the repository public first.
+The site is served by GitHub Pages from the `main` branch, root folder, at
+https://skiproads01.github.io/christianity/. `.nojekyll` stops Pages from
+running the files through Jekyll.
+
+To set this up again on a fresh repository: **Settings > Pages**, set the source
+to **Deploy from a branch**, pick `main` and `/ (root)`, and save. A Pages site
+is publicly viewable on every plan, including from a private repository.
