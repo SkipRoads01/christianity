@@ -161,16 +161,19 @@ p + p { margin-top: 1rem; }
   text-transform: uppercase;
 }
 
+/* Notes are set apart by type and colour, not by rules. Bordering them put a
+   line above and below every one, which read as a box. */
 .footnote {
-  border-top: 1px solid var(--rule);
   color: var(--muted);
   font-family: var(--sans);
   font-size: 0.875rem;
   line-height: 1.6;
-  margin-top: 2rem;
+  margin-top: 1.25rem;
   max-width: 46rem;
-  padding-top: 1rem;
 }
+
+.footnote + .footnote { margin-top: 0.9rem; }
+.chart-frame + .footnote { margin-top: 1rem; }
 
 /* ============================================================
    Contents list
