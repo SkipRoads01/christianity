@@ -47,11 +47,13 @@ not in the script, so it survives with JavaScript disabled.
   out to 68rem with the `margin-left: 50%` / `transform` pattern.
 - Reusable content blocks: `.entry` for a dated item, `.cards` for the home page,
   `.dates` for a dated list, `.table-scroll` for anything wider than the column.
-- Do not write copy for this site. Every sentence a reader sees comes from the
-  source documents in `sources/`, transcribed faithfully — no paraphrase, no
-  adjusted figures, no added assertions. Anything that is not from a source is a
-  plain functional label: a heading, a nav item, a field name, a count, a button.
-  No taglines, no framing sentences, no summaries, no invented section titles.
+- Never add copy unasked. When the owner asks for copy, write it, and hold it to
+  this standard: state the fact, name the people, say where and when. No
+  flourishes, no summarising sentences that add nothing, no chained relative
+  clauses, no caveats about what the page has just said. If a detail is worth
+  including, it is because a reader cannot follow the point without it.
+  Everything else a reader sees is a plain functional label: a heading, a nav
+  item, a field name, a count, a button.
   Interface strings are the one exception: a button, a field name, an empty
   state, or a line explaining where data is stored has to say something. Keep
   those to the shortest plain statement that does the job.
