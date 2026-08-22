@@ -19,6 +19,9 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
 - `terminology.html` — section two. Twelve dispute entries, each with terms,
   pronunciation, body, figures, and resolution.
 - `styles.css` — every rule for every page.
+- `site.webmanifest`, `assets/icon-*.png` — home-screen name and icon. The icons
+  are square crops of `assets/pantocrator.jpg`; regenerate all four sizes
+  together if the crop changes.
 - `sources/` — the reference PDFs each section was built from.
 
 Each page repeats the masthead and nav inline. There is no templating; when the

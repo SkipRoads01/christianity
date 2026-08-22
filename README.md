@@ -18,7 +18,8 @@ dependencies.
 | --- | --- |
 | `styles.css` | All styling. Colors are custom properties in the `:root` block at the top, with a dark palette in the `prefers-color-scheme` block below it. |
 | `sources/` | The original reference PDFs each section was built from. |
-| `assets/` | Images and other media. |
+| `assets/` | The home-screen icon at four sizes, and `pantocrator.jpg`, the photograph it is cropped from. |
+| `site.webmanifest` | Names the site **Christianity** on a phone home screen and points at the icons. |
 
 All three timeline charts are inline SVG. They use the same CSS custom
 properties as the rest of the page, so they follow the light and dark palettes
