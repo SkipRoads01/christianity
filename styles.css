@@ -496,10 +496,13 @@ footer p { max-width: none; }
 /* Steps scroll clear of the sticky chart. The bar reports its own height. */
 .step { scroll-margin-top: calc(var(--bar-h, 12rem) + 1.5rem); }
 
-.chart-live .grow { transition: stroke-dashoffset 0.9s cubic-bezier(0.22, 0.61, 0.36, 1); }
-.chart-live .connector { transition: stroke-dashoffset 0.5s ease 0.15s; }
+/* Nothing animates until the first frame has been painted, or the whole chart
+   plays its opening move while the page is still loading. */
+.chart-live.is-ready .grow { transition: stroke-dashoffset 0.9s cubic-bezier(0.22, 0.61, 0.36, 1); }
+.chart-live.is-ready .connector { transition: stroke-dashoffset 0.5s ease 0.15s; }
 
-.chart-live .reveal { opacity: 0; transition: opacity 0.45s ease 0.35s; }
+.chart-live .reveal { opacity: 0; }
+.chart-live.is-ready .reveal { transition: opacity 0.45s ease 0.35s; }
 .chart-live .reveal.is-on { opacity: 1; }
 
 .chart-live .playhead line {
@@ -626,8 +629,8 @@ footer p { max-width: none; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .chart-live .grow,
-  .chart-live .connector,
+  .chart-live.is-ready .grow,
+  .chart-live.is-ready .connector,
   .chart-live .reveal,
   .chart-live .playhead,
   .step { transition: none; }
@@ -904,10 +907,13 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 }
 
 /* Advance control sitting with the chart, for when the steps are scrolled away */
+/* Align the control with the reading column below, so its right edge lines up
+   with the text rather than with the far edge of the wider chart frame. */
 .bar-advance {
-  align-items: baseline;
   display: flex;
   justify-content: flex-end;
-  margin: 0 0 1.25rem;
-  max-width: none;
+  margin: 0 auto 1rem;
+  max-width: 48rem;
+  padding: 0 1.5rem;
+  width: 100%;
 }
