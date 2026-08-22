@@ -1,0 +1,27 @@
+name: Deploy to Cloudflare
+
+# Publishes the site and the notes API as one Worker. GitHub Pages keeps
+# running in parallel until this is confirmed working.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: cloudflare
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assemble dist/
+        run: ./build.sh
+
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN_DELTA }}
+          command: deploy
