@@ -247,7 +247,7 @@ p + p { margin-top: 1rem; }
   align-items: flex-start;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem 0.55rem;
+  gap: 0.35rem 1.75rem;
   margin-bottom: 0.75rem;
 }
 
@@ -260,11 +260,6 @@ p + p { margin-top: 1rem; }
   line-height: 1.3;
 }
 
-.terms .sep {
-  color: var(--faint);
-  font-size: 1.125rem;
-  line-height: 1.3;
-}
 
 .pron {
   color: var(--faint);
