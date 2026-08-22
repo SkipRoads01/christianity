@@ -21,8 +21,11 @@
   --measure: 36rem;
 }
 
+/* The dark palette applies when the viewer's system asks for it, unless a host
+   has stamped an explicit light choice on the root element. The [data-theme]
+   block below repeats it so an explicit dark choice wins over a light system. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #161513;
     --surface: #1e1c19;
     --surface-alt: #232019;
@@ -34,6 +37,19 @@
     --accent: #c9a668;
     --accent-soft: #2a241a;
   }
+}
+
+:root[data-theme="dark"] {
+  --bg: #161513;
+  --surface: #1e1c19;
+  --surface-alt: #232019;
+  --text: #ece7dd;
+  --muted: #a9a094;
+  --faint: #8a8175;
+  --rule: #302c27;
+  --rule-strong: #453f37;
+  --accent: #c9a668;
+  --accent-soft: #2a241a;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -178,10 +194,16 @@ p + p { margin-top: 1rem; }
 .toc a:hover { color: var(--accent); }
 .toc .toc-meta { color: var(--faint); flex-shrink: 0; }
 
+/* Narrow screens have no room for the label and its detail on one line. */
+@media (max-width: 32rem) {
+  .toc a { flex-direction: column; gap: 0.15rem; }
+  .toc .toc-meta { flex-shrink: 1; }
+}
+
 /* ============================================================
    Entry: a named thing with a date, a body, and a status line
    ============================================================ */
-.entry { border-top: 1px solid var(--rule); padding: 1.75rem 0; }
+.entry { border-top: 1px solid var(--rule); padding: 1.75rem 0; scroll-margin-top: 1.5rem; }
 .entry:last-of-type { border-bottom: 1px solid var(--rule); }
 
 .entry-head {

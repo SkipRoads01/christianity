@@ -36,13 +36,14 @@ not in the script, so it survives with JavaScript disabled.
   out to 68rem with the `margin-left: 50%` / `transform` pattern.
 - Reusable content blocks: `.entry` for a dated item, `.cards` for the home page,
   `.dates` for a dated list, `.table-scroll` for anything wider than the column.
-- Content is transcribed from the source PDFs. Keep it faithful — do not
-  paraphrase claims, adjust figures, or add historical assertions that are not in
-  the source.
+- Do not write copy for this site. Every sentence a reader sees comes from the
+  source documents in `sources/`, transcribed faithfully — no paraphrase, no
+  adjusted figures, no added assertions. Anything that is not from a source is a
+  plain functional label: a heading, a nav item, a field name, a count, a button.
+  No taglines, no framing sentences, no summaries, no invented section titles.
 - Honor `prefers-reduced-motion` in anything animated.
 - Prose follows the Google developer documentation style guide: second person,
   active voice, present tense, sentence case headings.
 
 ## Current priorities
-1. The civilization section — law, learning, art, daily life. Not started.
-2. Sections three onward will follow the same page pattern.
+Set by the repository owner. Do not add sections or content unasked.

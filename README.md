@@ -1,16 +1,16 @@
 # Christianity: History, Theology, and Civilization
 
-Research and reading notes, published as a static website. No build step, no
-dependencies — every page is hand-written HTML against one stylesheet.
+Research and reading notes, as a static website. No build step and no
+dependencies.
 
 ## Sections
 
 | Page | Contents |
 | --- | --- |
-| `index.html` | Home. Scope of the project and links to the sections. |
-| `timeline.html` | The history walked forward, one era at a time. Fourteen steps from AD 30 to today; the chart draws itself as you advance and each branch appears at the moment it splits. |
-| `denominations.html` | Two thousand years of branching: two timeline charts, the five main families, the ten Protestant subdivisions, a ten-by-five comparison table, and twenty key dates. |
-| `terminology.html` | Twelve doctrinal disputes that turned on single words, from *homoousios* in 325 to *kerygma* in the twentieth century. |
+| `index.html` | Contents. |
+| `timeline.html` | Fourteen steps from AD 30 to today. The chart draws as you advance and each branch appears at the date it splits. |
+| `denominations.html` | Two charts, five families, ten Protestant traditions, a ten-by-five comparison table, twenty dates. |
+| `terminology.html` | Twelve disputes, 325 to 1980. |
 
 ## Layout
 
@@ -48,8 +48,3 @@ The repository is private, so the site isn't online. To publish with GitHub
 Pages, go to **Settings > Pages**, set the source to the `main` branch and the
 root folder, and save. Publishing from a private repository requires a paid
 GitHub plan; on the free plan, make the repository public first.
-
-## Still to write
-
-The third line of the title. Nothing yet covers what Christian institutions did
-to law, learning, art, and the shape of daily life.
