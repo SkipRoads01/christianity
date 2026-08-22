@@ -240,24 +240,39 @@ p + p { margin-top: 1rem; }
 .entry-meta .eyebrow { display: block; margin-bottom: 0.15rem; }
 .entry-meta p { color: var(--muted); max-width: none; }
 
-/* Greek and Latin terms under dispute */
-.terms { margin-bottom: 0.6rem; }
+/* Greek and Latin terms under dispute. Each term sits directly above its
+   own pronunciation, so the pairs read as columns rather than as two
+   separate lines that happen to share an order. */
+.terms {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.55rem;
+  margin-bottom: 0.75rem;
+}
+
+.term-pair { display: flex; flex-direction: column; }
 
 .terms .term {
   font-size: 1.125rem;
   font-style: italic;
   font-weight: 600;
+  line-height: 1.3;
 }
 
-.terms .sep { color: var(--faint); margin: 0 0.4rem; }
+.terms .sep {
+  color: var(--faint);
+  font-size: 1.125rem;
+  line-height: 1.3;
+}
 
 .pron {
   color: var(--faint);
-  display: block;
   font-family: var(--mono);
   font-size: 0.8125rem;
   font-style: normal;
   letter-spacing: 0.01em;
+  line-height: 1.4;
   margin-top: 0.2rem;
 }
 
