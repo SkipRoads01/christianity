@@ -425,3 +425,170 @@ footer {
 }
 
 footer p { max-width: none; }
+
+/* ============================================================
+   Timeline walkthrough
+   ============================================================ */
+.wrap-bar { margin: 0 auto; max-width: 68rem; padding: 0 1.5rem; }
+
+.timeline-bar {
+  background: var(--bg);
+  border-bottom: 1px solid var(--rule);
+  padding: 0.75rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+/* Inside the sticky bar the chart carries its own frame, so drop the
+   breakout treatment the static charts use. */
+.chart-frame-live {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  transform: none;
+  width: 100%;
+}
+
+.chart-live { min-width: 44rem; }
+
+/* Steps scroll clear of the sticky chart. The bar reports its own height. */
+.step { scroll-margin-top: calc(var(--bar-h, 12rem) + 1.5rem); }
+
+.chart-live .grow { transition: stroke-dashoffset 0.9s cubic-bezier(0.22, 0.61, 0.36, 1); }
+.chart-live .connector { transition: stroke-dashoffset 0.5s ease 0.15s; }
+
+.chart-live .reveal { opacity: 0; transition: opacity 0.45s ease 0.35s; }
+.chart-live .reveal.is-on { opacity: 1; }
+
+.chart-live .playhead line {
+  stroke: var(--accent);
+  stroke-dasharray: 3 3;
+  stroke-width: 1.5;
+}
+
+.chart-live .playhead {
+  transition: transform 0.9s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.chart-live .playhead-year {
+  fill: var(--accent);
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------
+   Steps
+   ------------------------------------------------------------ */
+.step {
+  border-top: 1px solid var(--rule);
+  opacity: 0;
+  padding: 2rem 0 0.5rem;
+  transform: translateY(14px);
+  transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.step.is-visible { opacity: 1; transform: none; }
+
+.step-head {
+  align-items: baseline;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.step-year {
+  color: var(--accent);
+  font-family: var(--sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.step-count {
+  color: var(--faint);
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+}
+
+.step h3 { font-size: 1.375rem; font-weight: 500; margin-bottom: 0.75rem; }
+
+.step-link {
+  font-family: var(--sans);
+  font-size: 0.9375rem;
+  margin-top: 1rem;
+}
+
+.step-link a { text-decoration: none; }
+.step-link a:hover { text-decoration: underline; }
+
+/* ------------------------------------------------------------
+   Advance control
+   ------------------------------------------------------------ */
+.advance {
+  border-top: 1px solid var(--rule);
+  margin-top: 2rem;
+  padding-top: 2rem;
+}
+
+.advance-btn {
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-radius: 4px;
+  color: var(--text);
+  cursor: pointer;
+  display: block;
+  font: inherit;
+  padding: 1rem 1.25rem;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  width: 100%;
+}
+
+.advance-btn:hover, .advance-btn:focus-visible {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.advance-label {
+  color: var(--accent);
+  display: block;
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.advance-next { display: block; font-size: 1.125rem; margin-top: 0.2rem; }
+
+.advance-link {
+  background: none;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 0.875rem;
+  margin-top: 0.9rem;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.advance-link:hover { color: var(--accent); }
+
+.advance-done p { color: var(--muted); font-family: var(--sans); font-size: 0.9375rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .chart-live .grow,
+  .chart-live .connector,
+  .chart-live .reveal,
+  .chart-live .playhead,
+  .step { transition: none; }
+  .step { opacity: 1; transform: none; }
+}

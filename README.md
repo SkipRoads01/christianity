@@ -8,6 +8,7 @@ dependencies — every page is hand-written HTML against one stylesheet.
 | Page | Contents |
 | --- | --- |
 | `index.html` | Home. Scope of the project and links to the sections. |
+| `timeline.html` | The history walked forward, one era at a time. Fourteen steps from AD 30 to today; the chart draws itself as you advance and each branch appears at the moment it splits. |
 | `denominations.html` | Two thousand years of branching: two timeline charts, the five main families, the ten Protestant subdivisions, a ten-by-five comparison table, and twenty key dates. |
 | `terminology.html` | Twelve doctrinal disputes that turned on single words, from *homoousios* in 325 to *kerygma* in the twentieth century. |
 
@@ -19,9 +20,17 @@ dependencies — every page is hand-written HTML against one stylesheet.
 | `sources/` | The original reference PDFs each section was built from. |
 | `assets/` | Images and other media. |
 
-The two timeline charts are inline SVG inside `denominations.html`. They use the
-same CSS custom properties as the rest of the page, so they follow the light and
-dark palettes without a second copy.
+All three timeline charts are inline SVG. They use the same CSS custom
+properties as the rest of the page, so they follow the light and dark palettes
+without a second copy.
+
+`timeline.html` carries the only JavaScript on the site, inline at the foot of
+the page and dependency-free. Each line is revealed by animating its
+`stroke-dashoffset` to the x position of the current year, which is why the
+year-to-x scale appears twice: once in the markup and once in the script. Change
+one and change the other. The page respects `prefers-reduced-motion`, and every
+step is in the HTML rather than generated, so the content is there with
+JavaScript off — it is only the pacing that needs the script.
 
 ## View the site locally
 
