@@ -26,8 +26,10 @@ All three timeline charts are inline SVG. They use the same CSS custom
 properties as the rest of the page, so they follow the light and dark palettes
 without a second copy.
 
-`timeline.html` carries the only JavaScript on the site, inline at the foot of
-the page and dependency-free. Each line is revealed by animating its
+`timeline.html` carries its own script, inline at the foot of the page and
+dependency-free. `lightbox.js` is the one shared script: it opens any figure
+picture at a larger size, building its own trigger on load so a new figure needs
+no markup. Each line is revealed by animating its
 `stroke-dashoffset` to the x position of the current year, which is why the
 year-to-x scale appears twice: once in the markup and once in the script. Change
 one and change the other. The page respects `prefers-reduced-motion`, and every

@@ -11,8 +11,8 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
 ## Architecture
 - `index.html` — home page, links to each section.
 - `timeline.html` — the history walked forward in 14 steps. Sticky inline-SVG
-  chart, one `.step` article per era, and the site's only JavaScript (inline, no
-  dependencies).
+  chart, one `.step` article per era, and the page's own inline script. No
+  dependencies anywhere.
 - `denominations.html` — section one. Two inline-SVG timeline charts, entry
   lists for the families and the Protestant branches, a comparison table, and a
   dated list.
@@ -26,6 +26,10 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   `localStorage` under `christianity.reading.v1` and syncs through the Worker's
   `/api/notes` when it is reachable; export and import move a JSON file in and
   out, merging on book id.
+- `lightbox.js` — click a picture to see it larger. It builds its own trigger
+  around every `figure img` on load, so a picture added later needs no markup:
+  put the script on the page and it works. Include it on any page that grows a
+  figure. With JavaScript off the pictures still show at their inline size.
 - `styles.css` — every rule for every page.
 - `site.webmanifest`, `assets/icon-*.png` — home-screen name and icon. The icons
   are square crops of `assets/pantocrator.jpg`; regenerate all four sizes

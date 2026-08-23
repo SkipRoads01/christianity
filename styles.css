@@ -14,6 +14,7 @@
   --rule-strong: #cdc4b3;
   --accent: #7a5c2e;
   --accent-soft: #f0e7d6;
+  --backdrop: rgba(28, 26, 23, 0.72);
 
   --serif: Iowan Old Style, Palatino Linotype, Palatino, Georgia, serif;
   --sans: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif;
@@ -36,6 +37,7 @@
     --rule-strong: #453f37;
     --accent: #c9a668;
     --accent-soft: #2a241a;
+  --backdrop: rgba(0, 0, 0, 0.8);
   }
 }
 
@@ -50,6 +52,7 @@
   --rule-strong: #453f37;
   --accent: #c9a668;
   --accent-soft: #2a241a;
+  --backdrop: rgba(0, 0, 0, 0.8);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -990,5 +993,80 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 }
 
 .advance-links { display: flex; gap: 1.25rem; }
+
+/* Pictures open larger. The trigger is a button, so it takes focus and answers
+   the keyboard, and it carries no chrome of its own so the figure looks exactly
+   as it did. */
+.plate-open {
+  background: none;
+  border: 0;
+  cursor: zoom-in;
+  display: block;
+  font: inherit;
+  padding: 0;
+  width: 100%;
+}
+
+.plate-open:hover img { border-color: var(--rule-strong); }
+.plate-open:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+/* A dialog is display:none until it opens, so the layout goes on the open
+   state or the picture never appears. */
+.lightbox {
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  color: var(--text);
+  max-height: 94vh;
+  max-width: 96vw;
+  padding: 0.5rem 0.75rem 0.9rem;
+}
+
+.lightbox[open] { display: flex; flex-direction: column; }
+
+.lightbox::backdrop { background: var(--backdrop); }
+
+.lightbox img {
+  display: block;
+  height: auto;
+  margin: 0 auto;
+  max-height: calc(94vh - 7rem);
+  max-width: 100%;
+  min-height: 0;
+  width: auto;
+}
+
+/* The global measure would hold the caption to the reading column, which is
+   narrower than the picture it sits under. */
+.lightbox-caption {
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  margin: 0.7rem 0 0;
+  max-width: none;
+  text-align: center;
+}
+
+.lightbox-close {
+  align-self: flex-end;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 1.5rem;
+  line-height: 1;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  padding: 0;
+}
+
+.lightbox-close:hover, .lightbox-close:focus-visible { color: var(--accent); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .lightbox[open] { animation: lightbox-in 0.15s ease-out; }
+  @keyframes lightbox-in { from { opacity: 0; transform: scale(0.98); } }
+}
 
 .advance-link:disabled { color: var(--muted); cursor: default; opacity: 0.45; text-decoration: none; }
