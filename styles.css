@@ -561,6 +561,33 @@ footer p { max-width: none; }
 
 .step h3 { font-size: 1.375rem; font-weight: 500; margin-bottom: 0.75rem; }
 
+/* Plates. The first images on the site, so they take their frame from the
+   same tokens as everything else and stay inside the reading column: they
+   illustrate the step rather than carry data, so they do not break out the way
+   the charts do. Width and height on the img reserve the space before the file
+   arrives. */
+.plate { margin: 2.25rem 0; }
+
+.plate img {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
+/* Tall pictures would otherwise fill the screen on their own. */
+.plate-portrait img { margin: 0 auto; max-width: 26rem; }
+
+.plate figcaption {
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  margin-top: 0.6rem;
+  text-align: center;
+}
+
 .step-link {
   font-family: var(--sans);
   font-size: 0.9375rem;
