@@ -917,3 +917,48 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
   padding: 0 1.5rem;
   width: 100%;
 }
+
+/* Back and forward for the steps. Small on purpose, but each button keeps a
+   44px target so it is still comfortable to tap. */
+.stepper { align-items: center; display: flex; gap: 0.25rem; }
+
+.stepper-btn {
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-radius: 3px;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  font-family: var(--sans);
+  font-size: 1rem;
+  justify-content: center;
+  line-height: 1;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  padding: 0;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.stepper-btn:hover:not(:disabled), .stepper-btn:focus-visible {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Disabled rather than removed at either end, so the row never reflows. */
+.stepper-btn:disabled { color: var(--muted); cursor: default; opacity: 0.45; }
+
+/* Tabular figures stop the count shifting width as the digits change. */
+.stepper-count {
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  min-width: 3.5rem;
+  text-align: center;
+}
+
+.advance-links { display: flex; gap: 1.25rem; }
+
+.advance-link:disabled { color: var(--muted); cursor: default; opacity: 0.45; text-decoration: none; }

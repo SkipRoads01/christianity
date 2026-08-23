@@ -32,7 +32,15 @@
 <div class="timeline-bar" id="timeline-bar">
   <div class="wrap-bar">
     <p class="bar-advance">
-      <button type="button" class="btn btn-primary" id="advance-top">Advance</button>
+      <span class="stepper">
+        <button type="button" class="stepper-btn" id="back-top" aria-label="Back">
+          <span aria-hidden="true">&larr;</span>
+        </button>
+        <span class="stepper-count" id="stepper-count" aria-live="polite" aria-atomic="true">1 / 14</span>
+        <button type="button" class="stepper-btn" id="advance-top" aria-label="Forward">
+          <span aria-hidden="true">&rarr;</span>
+        </button>
+      </span>
     </p>
     <div class="chart-frame chart-frame-live" id="chart-scroll">
 <svg class="chart chart-live" viewBox="0 0 1100 178" role="img" aria-label="Timeline of Christian division from AD 30 to today, revealed step by step">
@@ -243,7 +251,10 @@
         <span class="advance-label">Move forward</span>
         <span class="advance-next" id="advance-next"></span>
       </button>
-      <button type="button" class="advance-link" id="reveal-all">Full timeline</button>
+      <span class="advance-links">
+        <button type="button" class="advance-link" id="back-btn">Back</button>
+        <button type="button" class="advance-link" id="reveal-all">Full timeline</button>
+      </span>
     </div>
 
     <div class="advance advance-done" id="done" hidden>
@@ -310,6 +321,10 @@
   var nextLabel = document.getElementById('advance-next');
   var advance = document.getElementById('advance');
   var done = document.getElementById('done');
+  var backTop = document.getElementById('back-top');
+  var fwdTop = document.getElementById('advance-top');
+  var backBtn = document.getElementById('back-btn');
+  var count = document.getElementById('stepper-count');
 
   // Each growing line is revealed by pulling back its dash offset.
   grows.forEach(function (el) {
@@ -356,18 +371,32 @@
     scroller.scrollTo({ left: Math.max(target, 0), behavior: reduce ? 'auto' : 'smooth' });
   }
 
+  // The stepper stays mounted at both ends and disables instead of hiding, so
+  // the pair never shifts under a pointer that is about to click it.
   function updateButton() {
     var next = current + 1;
-    if (next >= STEPS.length) {
-      advance.hidden = true;
-      done.hidden = false;
-      document.getElementById('advance-top').hidden = true;
-      return;
-    }
-    advance.hidden = false;
-    done.hidden = true;
-    nextLabel.textContent = TITLES[next];
-    document.getElementById('advance-top').hidden = false;
+    var atEnd = next >= STEPS.length;
+    var atStart = current === 0;
+
+    advance.hidden = atEnd;
+    done.hidden = !atEnd;
+    if (!atEnd) nextLabel.textContent = TITLES[next];
+
+    backTop.disabled = atStart;
+    fwdTop.disabled = atEnd;
+    backBtn.disabled = atStart;
+
+    // Name the destination, so the control says where it goes and not just
+    // which way it points.
+    label(backTop, atStart ? 'Back' : 'Back to ' + TITLES[current - 1]);
+    label(fwdTop, atEnd ? 'Forward' : 'Forward to ' + TITLES[next]);
+
+    count.textContent = (current + 1) + ' / ' + STEPS.length;
+  }
+
+  function label(el, text) {
+    el.setAttribute('aria-label', text);
+    el.title = text;
   }
 
   function show(i) {
@@ -393,8 +422,18 @@
     if (current + 1 < STEPS.length) goTo(current + 1, true);
   }
 
+  // Going back rewinds the chart and returns to the earlier step, but leaves
+  // the steps already revealed on the page. Re-hiding them would throw away
+  // the reader's place to no purpose, since moving forward again only has to
+  // advance the chart.
+  function back() {
+    if (current > 0) goTo(current - 1, true);
+  }
+
   btn.addEventListener('click', forward);
-  document.getElementById('advance-top').addEventListener('click', forward);
+  fwdTop.addEventListener('click', forward);
+  backTop.addEventListener('click', back);
+  backBtn.addEventListener('click', back);
 
   document.getElementById('reveal-all').addEventListener('click', function () {
     goTo(STEPS.length - 1, false);
@@ -410,9 +449,11 @@
   });
 
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'ArrowRight' && !e.metaKey && !e.ctrlKey && !e.altKey) {
-      if (current + 1 < STEPS.length) { e.preventDefault(); goTo(current + 1, true); }
-    }
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var el = document.activeElement;
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+    if (e.key === 'ArrowRight' && current + 1 < STEPS.length) { e.preventDefault(); forward(); }
+    if (e.key === 'ArrowLeft' && current > 0) { e.preventDefault(); back(); }
   });
 
   var bar = document.getElementById('timeline-bar');
