@@ -10,7 +10,7 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
 
 ## Architecture
 - `index.html` — home page, links to each section.
-- `timeline.html` — the history walked forward in 14 steps. Sticky inline-SVG
+- `timeline.html` — the history walked forward in 20 steps. Sticky inline-SVG
   chart, one `.step` article per era, and the page's own inline script. No
   dependencies anywhere.
 - `denominations.html` — section one. Two inline-SVG timeline charts, entry
