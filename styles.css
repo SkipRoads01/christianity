@@ -351,6 +351,14 @@ tbody td { color: var(--muted); font-family: var(--sans); line-height: 1.5; }
   margin-top: 0.5rem;
 }
 
+/* The table stops overflowing once the frame is wider than the table's own
+   min-width: the frame is min(68rem, 100vw - 5rem) and the table is 60rem, so
+   they meet at a 65rem viewport. Hide the hint above that, with a little room
+   for the scrollbar. Change either of those two widths and change this. */
+@media (min-width: 66rem) {
+  .scroll-hint { display: none; }
+}
+
 /* ============================================================
    Dated list
    ============================================================ */
