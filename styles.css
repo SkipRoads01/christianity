@@ -802,7 +802,7 @@ figcaption {
   text-transform: uppercase;
 }
 
-input[type="text"], textarea {
+input[type="text"], input[type="password"], input[type="date"], textarea {
   background: var(--surface);
   border: 1px solid var(--rule-strong);
   border-radius: 3px;
@@ -815,7 +815,7 @@ input[type="text"], textarea {
 
 textarea { font-size: 0.9375rem; line-height: 1.6; resize: vertical; }
 
-input[type="text"]:focus, textarea:focus {
+input[type="text"]:focus, input[type="password"]:focus, input[type="date"]:focus, textarea:focus {
   border-color: var(--accent);
   outline: 2px solid transparent;
   outline-offset: 0;
@@ -882,7 +882,7 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .tb:hover, .tb:focus-visible { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 .tb-mark { background: var(--accent-soft); }
 
-.chapter .c-notes {
+.chapter .c-notes, .week .c-notes {
   font-family: var(--serif);
   font-size: 0.9375rem;
   line-height: 1.6;
@@ -1078,3 +1078,65 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 }
 
 .advance-link:disabled { color: var(--muted); cursor: default; opacity: 0.45; text-decoration: none; }
+
+/* ============================================================
+   Bulletins
+   ============================================================ */
+.lock { align-items: flex-end; display: flex; flex-wrap: wrap; gap: 0.75rem; max-width: 26rem; }
+.lock .field { flex: 1 1 12rem; }
+.lock .btn { padding: 0.6rem 1rem; }
+
+.lock-state {
+  color: var(--muted);
+  flex-basis: 100%;
+  font-family: var(--sans);
+  font-size: 0.875rem;
+  min-height: 1.5em;
+}
+
+.week + .week { border-top: 1px solid var(--rule); margin-top: 3rem; padding-top: 2.5rem; }
+.week-head h3 { font-size: 1.375rem; font-weight: 500; margin: 0.2rem 0 0; }
+.week .field { margin-top: 1.5rem; }
+.week .c-notes { min-height: 9rem; }
+
+.readings { list-style: none; margin: 0; padding: 0; }
+.reading { align-items: center; display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+.reading .r-label { flex: 0 0 10rem; font-family: var(--sans); font-size: 0.875rem; }
+.reading .r-passage { flex: 1 1 auto; min-width: 0; }
+
+@media (max-width: 34rem) {
+  .reading { gap: 0.35rem; }
+  .reading .r-label { flex-basis: 7.75rem; padding-inline: 0.45rem; }
+}
+
+/* The date field sits in a row of buttons and takes their size, not the
+   full width a text field gets. */
+.bar-actions input[type="date"] { font-family: var(--sans); font-size: 0.875rem; padding: 0.3rem 0.5rem; width: auto; }
+
+.week .toolbar { flex-wrap: wrap; }
+.tb-word { font-family: var(--sans); font-size: 0.8125rem; }
+
+/* Sits between the toolbar and the notes. It shows the address of the link
+   or the text of the note the caret is in, and holds the field for a new one. */
+.ctx {
+  align-items: center;
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  flex-wrap: wrap;
+  font-family: var(--sans);
+  font-size: 0.8125rem;
+  gap: 0.4rem 0.9rem;
+  padding: 0.45rem 0.6rem;
+}
+
+/* display:flex above would otherwise outrank the hidden attribute. */
+.ctx[hidden], .ctx [hidden] { display: none; }
+
+.ctx-url, .ctx-text { flex: 1 1 12rem; min-width: 0; overflow-wrap: anywhere; }
+.ctx-text { color: var(--muted); }
+.ctx .ctx-input { flex: 1 1 8rem; font-family: var(--sans); font-size: 0.875rem; min-width: 0; padding: 0.3rem 0.5rem; width: auto; }
+.ctx .linkish { font-size: 0.8125rem; }
+
+.c-notes a { text-underline-offset: 2px; }
+.c-notes span[data-note] { border-bottom: 1px dotted var(--accent); cursor: help; }

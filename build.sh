@@ -9,7 +9,8 @@ rm -rf dist
 mkdir -p dist
 
 for f in index.html timeline.html denominations.html terminology.html \
-         reading.html styles.css lightbox.js site.webmanifest; do
+         reading.html bulletins.html styles.css lightbox.js \
+         site.webmanifest; do
   cp "$f" dist/
 done
 

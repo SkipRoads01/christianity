@@ -12,6 +12,7 @@ dependencies.
 | `denominations.html` | Two charts, five families, ten Protestant traditions, a ten-by-five comparison table, twenty dates. |
 | `terminology.html` | Twelve disputes, 325 to 1980. |
 | `reading.html` | Research notes by book and chapter. An editor, not a document: add a book, record its publication details, then add chapters and write notes under them. Notes take bold, italic, highlight, lists and quotations. |
+| `bulletins.html` | Notes on the weekly parish bulletin, behind a passcode. This week and next week, each with a topic, readings, and notes; earlier weeks listed below. The nav link appears only on a device that has unlocked the page. |
 
 ## Layout
 
@@ -44,6 +45,18 @@ site is public. The consequence is that they live in one browser on one device:
 **Export** writes a `reading-notes.json` file and **Import** merges one back in,
 which is how notes move between devices or get backed up. Import matches on book
 id, so re-importing a file updates those books rather than duplicating them.
+
+## Bulletins
+
+`bulletins.html` asks for a passcode before it shows anything. The passcode is
+a gate against visitors, not encryption: the page carries a salt and a hash,
+and the notes are kept in the browser under the `localStorage` key
+`christianity.bulletins.v1`, the same way reading notes are. **Export** writes a
+`bulletins.json` file and **Import** merges one back in by week.
+
+To change the passcode, run `node scripts/bulletins-passcode.mjs "new passcode"`
+and paste the two lines it prints over `SALT` and `VERIFIER` in
+`bulletins.html`. Every device then has to unlock again.
 
 ## View the site locally
 

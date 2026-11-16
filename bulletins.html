@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bulletins &middot; Christianity: History, Theology, and Civilization</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" href="assets/icon-32.png" sizes="32x32" />
+<link rel="apple-touch-icon" href="assets/icon-180.png" />
+<link rel="manifest" href="site.webmanifest" />
+<meta name="apple-mobile-web-app-title" content="Christianity" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#fbf9f5" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#161513" media="(prefers-color-scheme: dark)" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <h1><a href="timeline.html">Christianity: History, Theology, and Civilization</a></h1>
+    <nav>
+      <a href="timeline.html">Timeline</a>
+      <a href="denominations.html">Denominations</a>
+      <a href="terminology.html">Metaontology</a>
+      <a href="reading.html">Research</a>
+      <a href="bulletins.html" id="nav-bulletins" aria-current="page" hidden>Bulletins</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- Both blocks start hidden. The script shows one of them once it knows
+       whether this device has been unlocked, so neither flashes first. -->
+  <div id="lock" hidden>
+    <form class="lock" id="lock-form">
+      <label class="field">
+        <span>Passcode</span>
+        <input type="password" id="passcode" autocomplete="current-password"
+               autocapitalize="off" autocorrect="off" spellcheck="false" />
+      </label>
+      <button type="submit" class="btn btn-primary" id="unlock">Unlock</button>
+      <p class="lock-state" id="lock-state" role="status"></p>
+    </form>
+  </div>
+
+  <section id="app" hidden>
+    <div class="bar">
+      <h2>Bulletins</h2>
+      <div class="bar-actions">
+        <button type="button" class="btn" id="export">Export</button>
+        <button type="button" class="btn" id="import">Import</button>
+        <input type="file" id="import-file" accept="application/json" hidden />
+        <button type="button" class="btn" id="lock-again">Lock</button>
+      </div>
+    </div>
+
+    <!-- This week and next week -->
+    <div id="home">
+      <div id="weeks"></div>
+
+      <div class="bar bar-sub">
+        <h3>Earlier weeks</h3>
+        <div class="bar-actions">
+          <input type="date" id="pick" aria-label="A date in the week to open" />
+          <button type="button" class="btn" id="open-week">Open week</button>
+        </div>
+      </div>
+      <p class="empty" id="empty-earlier" hidden>No earlier weeks yet.</p>
+      <ul class="books" id="earlier"></ul>
+    </div>
+
+    <!-- One earlier week -->
+    <div id="one" hidden>
+      <p class="crumb"><button type="button" class="linkish" id="back">&larr; This week</button></p>
+      <div id="one-week"></div>
+      <p class="danger-row">
+        <button type="button" class="linkish danger" id="delete-week">Delete this week</button>
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<template id="tpl-week">
+  <article class="week">
+    <header class="week-head">
+      <p class="eyebrow w-label"></p>
+      <h3 class="w-date"></h3>
+    </header>
+
+    <label class="field">
+      <span>Topic</span>
+      <input type="text" class="w-topic" autocomplete="off" />
+    </label>
+
+    <div class="field">
+      <span>Readings</span>
+      <ol class="readings"></ol>
+      <p><button type="button" class="linkish w-add">Add reading</button></p>
+    </div>
+
+    <div class="field">
+      <span>Notes</span>
+      <div class="editor">
+        <div class="toolbar" role="toolbar" aria-label="Formatting">
+          <button type="button" class="tb" data-cmd="bold" title="Bold"><b>B</b></button>
+          <button type="button" class="tb" data-cmd="italic" title="Italic"><i>I</i></button>
+          <button type="button" class="tb tb-mark" data-cmd="mark" title="Highlight">H</button>
+          <button type="button" class="tb" data-cmd="insertUnorderedList" title="Bulleted list">&bull;</button>
+          <button type="button" class="tb" data-cmd="insertOrderedList" title="Numbered list">1.</button>
+          <button type="button" class="tb" data-cmd="blockquote" title="Quotation">&ldquo;</button>
+          <button type="button" class="tb tb-word" data-cmd="link" title="Link">Link</button>
+          <button type="button" class="tb tb-word" data-cmd="note" title="Note on the selected text">Note</button>
+          <button type="button" class="tb" data-cmd="clear" title="Clear formatting">&#10005;</button>
+        </div>
+        <div class="ctx" hidden>
+          <a class="ctx-url" target="_blank" rel="noopener noreferrer" hidden></a>
+          <span class="ctx-text" hidden></span>
+          <input type="text" class="ctx-input" autocomplete="off" autocapitalize="off" spellcheck="false" hidden />
+          <button type="button" class="linkish ctx-save" hidden>Save</button>
+          <button type="button" class="linkish ctx-cancel" hidden>Cancel</button>
+          <button type="button" class="linkish ctx-edit" hidden>Edit</button>
+          <button type="button" class="linkish ctx-remove" hidden>Remove</button>
+        </div>
+        <div class="c-notes" contenteditable="true" role="textbox" aria-multiline="true"
+             aria-label="Notes" data-placeholder="Notes"></div>
+      </div>
+    </div>
+  </article>
+</template>
+
+<template id="tpl-reading">
+  <li class="reading">
+    <input type="text" class="r-label" placeholder="Reading" aria-label="Reading" autocomplete="off" />
+    <input type="text" class="r-passage" placeholder="Passage" aria-label="Passage" autocomplete="off" />
+    <button type="button" class="icon-btn r-del" title="Remove reading" aria-label="Remove reading">&times;</button>
+  </li>
+</template>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var now = function () { return Date.now(); };
+
+  // ---- lock --------------------------------------------------------------
+  // A gate, not encryption. It keeps the form away from anyone who finds the
+  // page; the notes themselves never leave this browser, so there is nothing
+  // here for the passcode to protect on the server. The page holds a salt and
+  // the hash of the stretched passcode, never the passcode. A device that has
+  // been unlocked keeps the stretched value and is not asked again.
+  var UNLOCK_KEY = 'christianity.bulletins.key';
+  var SALT = '008e53c663e24e8b39fefec0ff59e176';
+  var VERIFIER = '9d016c417b18e772570f78a1eceb3d5707662fb712ad80d2b2e2b92b00d6df79';
+  var ROUNDS = 310000;
+
+  function toHex(buffer) {
+    return Array.prototype.map.call(new Uint8Array(buffer), function (b) {
+      return ('0' + b.toString(16)).slice(-2);
+    }).join('');
+  }
+
+  function fromHex(hex) {
+    var out = new Uint8Array(hex.length / 2);
+    for (var i = 0; i < out.length; i++) out[i] = parseInt(hex.substr(i * 2, 2), 16);
+    return out;
+  }
+
+  // Phones capitalise and add spaces; neither should fail a correct passcode.
+  function tidy(passcode) {
+    return passcode.trim().toLowerCase().replace(/[\s_-]+/g, '-');
+  }
+
+  function stretch(passcode) {
+    var subtle = window.crypto.subtle;
+    return subtle.importKey('raw', new TextEncoder().encode(tidy(passcode)), 'PBKDF2', false, ['deriveBits'])
+      .then(function (key) {
+        return subtle.deriveBits(
+          { name: 'PBKDF2', hash: 'SHA-256', salt: fromHex(SALT), iterations: ROUNDS }, key, 256);
+      })
+      .then(toHex);
+  }
+
+  function matches(stretched) {
+    if (!/^[0-9a-f]{64}$/.test(stretched || '')) return Promise.resolve(false);
+    return window.crypto.subtle.digest('SHA-256', fromHex(stretched)).then(function (hash) {
+      return toHex(hash) === VERIFIER;
+    });
+  }
+
+  function remembered() {
+    try { return localStorage.getItem(UNLOCK_KEY); } catch (e) { return null; }
+  }
+
+  function showLock(message) {
+    $('app').hidden = true;
+    $('nav-bulletins').hidden = true;
+    $('lock').hidden = false;
+    $('lock-state').textContent = message || '';
+    $('passcode').value = '';
+    $('passcode').focus();
+  }
+
+  function showApp() {
+    $('lock').hidden = true;
+    $('nav-bulletins').hidden = false;
+    $('app').hidden = false;
+    start();
+  }
+
+  $('lock-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var value = $('passcode').value;
+    if (!value.trim()) return;
+    $('unlock').disabled = true;
+    $('lock-state').textContent = 'Checking';
+    stretch(value).then(function (stretched) {
+      return matches(stretched).then(function (ok) {
+        $('unlock').disabled = false;
+        if (!ok) {
+          $('lock-state').textContent = 'That passcode is not right.';
+          $('passcode').select();
+          return;
+        }
+        try { localStorage.setItem(UNLOCK_KEY, stretched); } catch (err) { /* this visit only */ }
+        showApp();
+      });
+    }).catch(function () {
+      $('unlock').disabled = false;
+      $('lock-state').textContent = 'This browser cannot check the passcode.';
+    });
+  });
+
+  $('lock-again').addEventListener('click', function () {
+    try { localStorage.removeItem(UNLOCK_KEY); } catch (e) { /* nothing stored */ }
+    showLock('');
+  });
+
+  // ---- state -------------------------------------------------------------
+  // localStorage is the source of truth for this device and works offline.
+  // The API is a reconciler on top of it, not a dependency.
+  var KEY = 'christianity.bulletins.v1';
+  var API = '/api/bulletins';
+  var PULL_MS = 30000;
+  var PUSH_MS = 2000;
+  var TOMBSTONE_DAYS = 90;
+  var READINGS = ['First reading', 'Psalm', 'Second reading', 'Gospel'];
+
+  var data = { version: 1, weeks: [] };
+  var syncWorks = null;      // null until the first attempt settles
+  var open = null;           // id of the earlier week on screen, if any
+  var shownThis = null;      // the Sunday the page was last drawn for
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.weeks)) data = parsed;
+      }
+    } catch (e) { /* start empty */ }
+  }
+
+  function persist() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(data));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  var saveTimer = null, pushTimer = null;
+
+  function save() {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () {
+      persist();
+      schedulePush();
+    }, 250);
+  }
+
+  // ---- weeks -------------------------------------------------------------
+  // A week is named by its Sunday, in local time, as YYYY-MM-DD. That makes
+  // the id the same on every device, so the same week merges with itself.
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+  function iso(d) {
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+
+  function fromIso(id) {
+    var p = id.split('-');
+    return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+  }
+
+  function sundayOf(d) {
+    var x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    x.setDate(x.getDate() - x.getDay());
+    return x;
+  }
+
+  function plusDays(id, n) {
+    var d = fromIso(id);
+    d.setDate(d.getDate() + n);
+    return iso(d);
+  }
+
+  function thisWeek() { return iso(sundayOf(new Date())); }
+
+  function longDate(id) {
+    return fromIso(id).toLocaleDateString('en-US',
+      { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  }
+
+  function find(id) {
+    for (var i = 0; i < data.weeks.length; i++) {
+      if (data.weeks[i].id === id) return data.weeks[i];
+    }
+    return null;
+  }
+
+  // A new week takes its reading names from the week before it on record, so
+  // a name changed once stays changed.
+  function readingNames(id) {
+    var before = null, latest = null;
+    data.weeks.forEach(function (w) {
+      if (w.deleted || !Array.isArray(w.readings) || !w.readings.length) return;
+      if (!latest || w.id > latest.id) latest = w;
+      if (w.id < id && (!before || w.id > before.id)) before = w;
+    });
+    var from = before || latest;
+    if (!from) return READINGS;
+    return from.readings.map(function (r) { return String((r && r.label) || ''); });
+  }
+
+  // The week on record, or a blank one that is not stored until it is edited.
+  function entry(id) {
+    var week = find(id);
+    if (!week || week.deleted) {
+      return {
+        id: id, topic: '', notes: '', updatedAt: 0,
+        readings: readingNames(id).map(function (label) { return { label: label, passage: '' }; })
+      };
+    }
+    // Synced and imported data is not trusted to have the right shape.
+    week.topic = typeof week.topic === 'string' ? week.topic : '';
+    week.notes = typeof week.notes === 'string' ? week.notes : '';
+    week.readings = (Array.isArray(week.readings) ? week.readings : []).map(function (r) {
+      return { label: String((r && r.label) || ''), passage: String((r && r.passage) || '') };
+    });
+    return week;
+  }
+
+  function touch(week) {
+    var index = data.weeks.indexOf(week);
+    if (index === -1) {
+      var old = find(week.id);            // a tombstone, if the week was deleted
+      if (old) data.weeks[data.weeks.indexOf(old)] = week; else data.weeks.push(week);
+    }
+    week.updatedAt = now();
+    save();
+  }
+
+  function textOf(html) {
+    return clean(html).textContent.replace(/\s+/g, ' ').trim();
+  }
+
+  function isEmpty(week) {
+    if (week.topic && week.topic.trim()) return false;
+    if (week.notes && textOf(week.notes)) return false;
+    return !(week.readings || []).some(function (r) { return r && r.passage && String(r.passage).trim(); });
+  }
+
+  // ---- merge -------------------------------------------------------------
+  // Last write wins per week. A deleted week leaves a tombstone, otherwise
+  // the other device would bring it back on the next pull.
+  function merge(mine, theirs) {
+    var out = {};
+    var cutoff = now() - TOMBSTONE_DAYS * 86400000;
+
+    function take(week) {
+      if (!week || !/^\d{4}-\d{2}-\d{2}$/.test(week.id || '')) return;
+      if (week.deleted && (week.updatedAt || 0) < cutoff) return;  // aged out
+      var seen = out[week.id];
+      if (!seen || (week.updatedAt || 0) > (seen.updatedAt || 0)) out[week.id] = week;
+    }
+
+    mine.forEach(take);
+    theirs.forEach(take);
+
+    return Object.keys(out).sort().reverse().map(function (k) { return out[k]; });
+  }
+
+  // ---- sync --------------------------------------------------------------
+  function typing() {
+    var el = document.activeElement;
+    return !!el && (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' || el.isContentEditable);
+  }
+
+  function schedulePush() {
+    if (syncWorks === false) return;
+    if (pushTimer) clearTimeout(pushTimer);
+    pushTimer = setTimeout(push, PUSH_MS);
+  }
+
+  function push() {
+    if (syncWorks === false) return;
+    fetch(API, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ version: 1, weeks: data.weeks })
+    }).then(function (r) {
+      syncWorks = r.ok;
+    }).catch(function () {
+      syncWorks = false;
+    });
+  }
+
+  function pull() {
+    if (syncWorks === false || !navigator.onLine) return;
+    fetch(API, { headers: { 'accept': 'application/json' } })
+      .then(function (r) {
+        if (!r.ok) throw new Error(String(r.status));
+        return r.json();
+      })
+      .then(function (remote) {
+        syncWorks = true;
+        if (!remote || !Array.isArray(remote.weeks)) return;
+
+        var before = JSON.stringify(data.weeks);
+        data.weeks = merge(data.weeks, remote.weeks);
+        if (JSON.stringify(data.weeks) === before) return;
+
+        persist();
+        // Never repaint a field the user is in the middle of: the merged data
+        // is already saved and appears at the next natural render.
+        if (!typing()) render();
+      })
+      .catch(function () {
+        syncWorks = false;
+      });
+  }
+
+  // ---- notes markup ------------------------------------------------------
+  // Notes are HTML. Everything written to the page or read from a file goes
+  // through this first. Only these tags survive. A link keeps a web or mail
+  // address, a note keeps its text, and nothing else keeps any attribute. The
+  // markup is parsed in a separate inert document, so nothing in it can load
+  // or run while it is being checked.
+  var ALLOWED = ['P', 'BR', 'B', 'STRONG', 'I', 'EM', 'MARK', 'UL', 'OL', 'LI',
+                 'BLOCKQUOTE', 'DIV', 'A', 'SPAN'];
+  var ADDRESS = /^(https?:\/\/|mailto:)/i;
+
+  function unwrap(el) {
+    var parent = el.parentNode;
+    while (el.firstChild) parent.insertBefore(el.firstChild, el);
+    parent.removeChild(el);
+  }
+
+  function clean(html) {
+    var body = new DOMParser().parseFromString(
+      '<!DOCTYPE html><body>' + (html || ''), 'text/html').body;
+
+    (function walk(node) {
+      var child = node.firstChild;
+      while (child) {
+        var next = child.nextSibling;
+        if (child.nodeType === 1) {
+          var tag = child.tagName.toUpperCase();   // SVG and MathML names arrive in lower case
+          var href = tag === 'A' ? (child.getAttribute('href') || '').trim() : '';
+          var note = tag === 'SPAN' ? (child.getAttribute('data-note') || '').trim() : '';
+          var keep = ALLOWED.indexOf(tag) !== -1 &&
+                     (tag !== 'A' || ADDRESS.test(href)) &&
+                     (tag !== 'SPAN' || note);
+
+          if (!keep) {
+            // Drop what cannot hold prose outright; unwrap the rest so the
+            // words inside survive.
+            if (/^(SCRIPT|STYLE|TEMPLATE|IFRAME|OBJECT|EMBED|NOSCRIPT)$/.test(tag)) {
+              node.removeChild(child);
+            } else {
+              next = child.firstChild || next;
+              unwrap(child);
+            }
+          } else {
+            for (var i = child.attributes.length - 1; i >= 0; i--) {
+              child.removeAttribute(child.attributes[i].name);
+            }
+            if (tag === 'A') {
+              child.setAttribute('href', href);
+              child.setAttribute('target', '_blank');
+              child.setAttribute('rel', 'noopener noreferrer');
+            }
+            if (tag === 'SPAN') {
+              child.setAttribute('data-note', note);
+              child.setAttribute('title', note);
+            }
+            walk(child);
+          }
+        } else if (child.nodeType !== 3) {
+          node.removeChild(child);
+        }
+        child = next;
+      }
+    }(body));
+
+    return body;
+  }
+
+  function sanitize(html) {
+    var body = clean(html);
+    // An emptied editor leaves a stray line break behind; store nothing.
+    return body.textContent.trim() ? body.innerHTML : '';
+  }
+
+  // Turn what was typed into a link address, or return '' if it is not one.
+  function address(typed) {
+    var value = (typed || '').trim();
+    if (!value) return '';
+    if (!/^[a-z][a-z0-9+.-]*:/i.test(value)) {
+      value = (/^[^\s\/@]+@[^\s\/@]+\.[^\s\/@]+$/.test(value) ? 'mailto:' : 'https://') + value;
+    }
+    if (!ADDRESS.test(value) || /\s/.test(value)) return '';
+    return value;
+  }
+
+  // ---- the notes editor --------------------------------------------------
+  function mountEditor(root, week) {
+    var notes = root.querySelector('.c-notes');
+    var ctx = root.querySelector('.ctx');
+    var url = ctx.querySelector('.ctx-url');
+    var text = ctx.querySelector('.ctx-text');
+    var input = ctx.querySelector('.ctx-input');
+    var bSave = ctx.querySelector('.ctx-save');
+    var bCancel = ctx.querySelector('.ctx-cancel');
+    var bEdit = ctx.querySelector('.ctx-edit');
+    var bRemove = ctx.querySelector('.ctx-remove');
+
+    var asking = null;     // 'link' or 'note' while the bar holds a field
+    var target = null;     // the link or note the bar is about
+    var held = null;       // the selection to act on once the field is saved
+
+    notes.innerHTML = sanitize(week.notes);
+
+    function commit() {
+      week.notes = sanitize(notes.innerHTML);
+      if (!week.notes && notes.innerHTML) notes.innerHTML = '';
+      touch(week);
+    }
+
+    function range() {
+      var sel = window.getSelection();
+      if (!sel.rangeCount) return null;
+      var r = sel.getRangeAt(0);
+      return notes.contains(r.commonAncestorContainer) ? r : null;
+    }
+
+    // The nearest link, note, or highlight around the selection.
+    function around(test) {
+      var r = range();
+      var node = r ? r.commonAncestorContainer : null;
+      while (node && node !== notes) {
+        if (node.nodeType === 1 && test(node)) return node;
+        node = node.parentNode;
+      }
+      return null;
+    }
+
+    function isLink(n) { return n.tagName === 'A'; }
+    function isNote(n) { return n.tagName === 'SPAN' && n.hasAttribute('data-note'); }
+    function isMark(n) { return n.tagName === 'MARK'; }
+
+    function wrap(el) {
+      var r = range();
+      if (!r || r.collapsed) return false;
+      try {
+        r.surroundContents(el);
+      } catch (e) {
+        // The selection crosses element boundaries; fall back to replacing it.
+        el.appendChild(r.extractContents());
+        r.insertNode(el);
+      }
+      return true;
+    }
+
+    function caretAfter(el) {
+      var r = document.createRange();
+      r.setStartAfter(el);
+      r.collapse(true);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(r);
+    }
+
+    function show(parts) {
+      [url, text, input, bSave, bCancel, bEdit, bRemove].forEach(function (el) {
+        el.hidden = parts.indexOf(el) === -1;
+      });
+      ctx.hidden = parts.length === 0;
+    }
+
+    function say(message) {
+      text.textContent = message;
+      show([text]);
+    }
+
+    // Show what the caret is in: a link's address, or a note's text.
+    function reflect() {
+      if (asking) return;
+      target = around(isLink) || around(isNote);
+      if (!target) { show([]); return; }
+      if (isLink(target)) {
+        url.href = target.getAttribute('href');
+        url.textContent = target.getAttribute('href');
+        show([url, bEdit, bRemove]);
+      } else {
+        text.textContent = target.getAttribute('data-note');
+        show([text, bEdit, bRemove]);
+      }
+    }
+
+    function ask(kind) {
+      var r = range();
+      if (kind === 'link') target = around(isLink);
+      if (kind === 'note') target = around(isNote);
+      if (kind === 'note' && !target && (!r || r.collapsed)) {
+        say('Select the words the note is about, then choose Note.');
+        return;
+      }
+      held = r ? r.cloneRange() : null;
+      asking = kind;
+      input.value = target
+        ? (kind === 'link' ? target.getAttribute('href') : target.getAttribute('data-note'))
+        : '';
+      input.placeholder = kind === 'link' ? 'Web address' : 'Note';
+      input.setAttribute('aria-label', input.placeholder);
+      input.inputMode = kind === 'link' ? 'url' : 'text';
+      show([input, bSave, bCancel]);
+      input.focus();
+    }
+
+    function restore() {
+      notes.focus();
+      if (!held) return;
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(held);
+    }
+
+    function done() {
+      asking = null;
+      held = null;
+      commit();
+      reflect();
+    }
+
+    function saveAsked() {
+      var kind = asking;
+      var value = input.value.trim();
+
+      if (kind === 'link') {
+        var href = address(value);
+        if (value && !href) {
+          input.select();
+          return;
+        }
+        asking = null;
+        restore();
+        if (!href) {
+          if (target) unwrap(target);
+        } else if (target) {
+          target.setAttribute('href', href);
+        } else {
+          var r = range();
+          if (r && !r.collapsed) {
+            document.execCommand('createLink', false, href);
+          } else {
+            var a = document.createElement('a');
+            a.setAttribute('href', href);
+            a.textContent = value;
+            if (r) r.insertNode(a); else notes.appendChild(a);
+            caretAfter(a);
+          }
+        }
+      } else {
+        asking = null;
+        restore();
+        if (!value) {
+          if (target) unwrap(target);
+        } else if (target) {
+          target.setAttribute('data-note', value);
+          target.setAttribute('title', value);
+        } else {
+          var span = document.createElement('span');
+          span.setAttribute('data-note', value);
+          span.setAttribute('title', value);
+          if (wrap(span)) caretAfter(span);
+        }
+      }
+      done();
+    }
+
+    function cancelAsked() {
+      asking = null;
+      restore();
+      held = null;
+      reflect();
+    }
+
+    // Turning a line into a list or a quotation rebuilds the line, and the
+    // caret can land back at its start. Count how many characters into the
+    // notes it was, and put it back there.
+    function caretAt() {
+      var r = range();
+      if (!r || !r.collapsed) return -1;
+      var before = document.createRange();
+      before.selectNodeContents(notes);
+      before.setEnd(r.startContainer, r.startOffset);
+      return before.toString().length;
+    }
+
+    function block(change) {
+      var was = caretAt();
+      change();
+      if (was < 0 || caretAt() === was) return;
+      var walker = document.createTreeWalker(notes, NodeFilter.SHOW_TEXT);
+      var node, left = was;
+      while ((node = walker.nextNode())) {
+        if (left <= node.length) {
+          window.getSelection().collapse(node, left);
+          return;
+        }
+        left -= node.length;
+      }
+    }
+
+    function exec(cmd) {
+      if (cmd === 'link' || cmd === 'note') return ask(cmd);
+      if (cmd === 'mark') {
+        var existing = around(isMark);
+        if (existing) unwrap(existing);
+        else if (wrap(document.createElement('mark'))) window.getSelection().collapseToEnd();
+      } else if (cmd === 'blockquote') {
+        block(function () { document.execCommand('formatBlock', false, 'blockquote'); });
+      } else if (cmd === 'insertUnorderedList' || cmd === 'insertOrderedList') {
+        block(function () { document.execCommand(cmd); });
+      } else if (cmd === 'clear') {
+        document.execCommand('removeFormat');
+        document.execCommand('unlink');
+        var m = around(isMark) || around(isNote);
+        if (m) unwrap(m);
+      } else {
+        document.execCommand(cmd);
+      }
+      commit();
+      reflect();
+    }
+
+    notes.addEventListener('input', function () {
+      week.notes = sanitize(notes.innerHTML);
+      touch(week);
+    });
+
+    // Paste as plain text, so copying from a web page does not drag its
+    // styling in with it. A pasted address on its own becomes a link.
+    notes.addEventListener('paste', function (e) {
+      e.preventDefault();
+      var pasted = (e.clipboardData || window.clipboardData).getData('text');
+      var r = range();
+      if (/^https?:\/\/\S+$/i.test(pasted.trim()) && address(pasted) && !around(isLink)) {
+        if (r && !r.collapsed) {
+          document.execCommand('createLink', false, address(pasted));
+        } else {
+          var a = document.createElement('a');
+          a.setAttribute('href', address(pasted));
+          a.textContent = pasted.trim();
+          if (r) { r.insertNode(a); caretAfter(a); }
+        }
+        commit();
+        return;
+      }
+      document.execCommand('insertText', false, pasted);
+    });
+
+    notes.addEventListener('keydown', function (e) {
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        ask('link');
+      }
+    });
+
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); saveAsked(); }
+      if (e.key === 'Escape') { e.preventDefault(); cancelAsked(); }
+    });
+
+    bSave.addEventListener('click', saveAsked);
+    bCancel.addEventListener('click', cancelAsked);
+    bEdit.addEventListener('click', function () {
+      if (!target) return;
+      var r = document.createRange();
+      r.selectNodeContents(target);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(r);
+      ask(isLink(target) ? 'link' : 'note');
+    });
+    bRemove.addEventListener('click', function () {
+      if (!target) return;
+      unwrap(target);
+      target = null;
+      commit();
+      show([]);
+    });
+
+    root.querySelectorAll('.tb').forEach(function (btn) {
+      // mousedown would move focus out of the editor and lose the selection
+      btn.addEventListener('mousedown', function (e) { e.preventDefault(); });
+      btn.addEventListener('click', function () {
+        if (asking) cancelAsked();
+        if (!range()) notes.focus();
+        exec(btn.dataset.cmd);
+      });
+    });
+
+    // The bar follows the caret, and steps aside when it leaves the editor.
+    function follow() {
+      if (asking) return;
+      if (range()) reflect();
+      else if (!ctx.contains(document.activeElement)) show([]);
+    }
+
+    document.addEventListener('selectionchange', follow);
+    return function unmount() { document.removeEventListener('selectionchange', follow); };
+  }
+
+  // ---- one week ----------------------------------------------------------
+  var unmounts = [];
+
+  function buildWeek(id, label) {
+    var week = entry(id);
+    var node = $('tpl-week').content.firstElementChild.cloneNode(true);
+    var topic = node.querySelector('.w-topic');
+    var list = node.querySelector('.readings');
+
+    node.querySelector('.w-label').textContent = label;
+    node.querySelector('.w-label').hidden = !label;
+    node.querySelector('.w-date').textContent = longDate(id);
+    node.dataset.week = id;
+
+    topic.value = week.topic;
+    topic.addEventListener('input', function () { week.topic = this.value; touch(week); });
+
+    function drawReadings() {
+      list.textContent = '';
+      week.readings.forEach(function (reading, index) {
+        var row = $('tpl-reading').content.firstElementChild.cloneNode(true);
+        var name = row.querySelector('.r-label');
+        var passage = row.querySelector('.r-passage');
+        name.value = reading.label;
+        passage.value = reading.passage;
+        name.addEventListener('input', function () { reading.label = this.value; touch(week); });
+        passage.addEventListener('input', function () { reading.passage = this.value; touch(week); });
+        row.querySelector('.r-del').addEventListener('click', function () {
+          if (reading.passage.trim() && !window.confirm('Remove this reading?')) return;
+          week.readings.splice(index, 1);
+          touch(week);
+          drawReadings();
+        });
+        list.appendChild(row);
+      });
+    }
+
+    drawReadings();
+
+    node.querySelector('.w-add').addEventListener('click', function () {
+      week.readings.push({ label: '', passage: '' });
+      touch(week);
+      drawReadings();
+      list.lastElementChild.querySelector('.r-label').focus();
+    });
+
+    unmounts.push(mountEditor(node, week));
+    return node;
+  }
+
+  // ---- the page ----------------------------------------------------------
+  function render() {
+    unmounts.forEach(function (off) { off(); });
+    unmounts = [];
+
+    var current = thisWeek();
+    var next = plusDays(current, 7);
+    shownThis = current;
+    $('pick').max = plusDays(next, 6);
+
+    if (open && (open >= current || (find(open) || {}).deleted)) open = null;
+
+    $('weeks').textContent = '';
+    $('one-week').textContent = '';
+
+    if (open) {
+      $('one-week').appendChild(buildWeek(open, ''));
+      $('home').hidden = true;
+      $('one').hidden = false;
+      return;
+    }
+
+    $('one').hidden = true;
+    $('home').hidden = false;
+    $('weeks').appendChild(buildWeek(current, 'This week'));
+    $('weeks').appendChild(buildWeek(next, 'Next week'));
+
+    var list = $('earlier');
+    list.textContent = '';
+    var earlier = data.weeks.filter(function (w) {
+      return !w.deleted && w.id < current && !isEmpty(entry(w.id));
+    }).sort(function (a, b) { return a.id < b.id ? 1 : -1; });
+    $('empty-earlier').hidden = earlier.length > 0;
+
+    earlier.forEach(function (w) {
+      var li = document.createElement('li');
+      var row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'book-row';
+
+      var title = document.createElement('span');
+      title.className = 'book-title';
+      title.textContent = longDate(w.id);
+
+      var meta = document.createElement('span');
+      meta.className = 'book-meta';
+      var bits = [];
+      if (w.topic && w.topic.trim()) bits.push(w.topic.trim());
+      var passages = w.readings.map(function (r) { return r.passage.trim(); })
+        .filter(function (p) { return p; });
+      if (passages.length) bits.push(passages.join('; '));
+      meta.textContent = bits.join(' · ');
+      meta.hidden = bits.length === 0;
+
+      row.appendChild(title);
+      row.appendChild(meta);
+      row.addEventListener('click', function () { go(w.id); });
+      li.appendChild(row);
+      list.appendChild(li);
+    });
+  }
+
+  function go(id) {
+    open = id && id < thisWeek() ? id : null;
+    render();
+    if (open || !id) { window.scrollTo(0, 0); return; }
+    var panel = document.querySelector('.week[data-week="' + id + '"]');
+    if (panel) panel.scrollIntoView();
+  }
+
+  // ---- actions -----------------------------------------------------------
+  $('back').addEventListener('click', function () { go(null); });
+
+  $('open-week').addEventListener('click', function () {
+    var picked = $('pick').value;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(picked)) { $('pick').focus(); return; }
+    var id = iso(sundayOf(fromIso(picked)));
+    if (id > plusDays(thisWeek(), 7)) { $('pick').focus(); return; }
+    $('pick').value = '';
+    go(id);
+  });
+
+  $('delete-week').addEventListener('click', function () {
+    if (!open) return;
+    if (!window.confirm('Delete ' + longDate(open) + ' and its notes?')) return;
+    var week = find(open);
+    // Replace with a tombstone so the deletion reaches other devices.
+    if (week) data.weeks[data.weeks.indexOf(week)] = { id: open, deleted: true, updatedAt: now() };
+    persist();
+    schedulePush();
+    go(null);
+  });
+
+  $('export').addEventListener('click', function () {
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var href = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = href;
+    a.download = 'bulletins.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(href); }, 1000);
+  });
+
+  $('import').addEventListener('click', function () { $('import-file').click(); });
+
+  $('import-file').addEventListener('change', function () {
+    var file = this.files && this.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var incoming;
+      try {
+        incoming = JSON.parse(reader.result);
+      } catch (e) {
+        window.alert('That file is not valid JSON.');
+        return;
+      }
+      if (!incoming || !Array.isArray(incoming.weeks)) {
+        window.alert('That file has no weeks in it.');
+        return;
+      }
+      // An import is an explicit choice, so it wins over what is already here.
+      var stamp = now();
+      incoming.weeks.forEach(function (w) { if (w) w.updatedAt = stamp; });
+      data.weeks = merge(data.weeks, incoming.weeks);
+      persist();
+      schedulePush();
+      go(null);
+    };
+    reader.readAsText(file);
+    this.value = '';
+  });
+
+  // ---- start -------------------------------------------------------------
+  var started = false;
+
+  function refresh() {
+    if ($('app').hidden) return;
+    // The week turns over at midnight on Sunday while the page sits open.
+    if (thisWeek() !== shownThis && !typing()) render();
+    pull();
+  }
+
+  function start() {
+    load();
+    render();
+    pull();
+    if (started) return;
+    started = true;
+    setInterval(function () {
+      if (document.visibilityState === 'visible') refresh();
+    }, PULL_MS);
+    window.addEventListener('focus', refresh);
+    window.addEventListener('online', function () { syncWorks = null; refresh(); });
+  }
+
+  if (!window.crypto || !window.crypto.subtle) {
+    showLock('This browser cannot check the passcode.');
+  } else {
+    matches(remembered()).then(function (ok) {
+      if (ok) showApp(); else showLock('');
+    }).catch(function () { showLock(''); });
+  }
+}());
+</script>
+
+</body>
+</html>

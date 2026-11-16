@@ -7,7 +7,15 @@
  * code, so every request here is already from a signed-in reader.
  */
 
-const NOTES_KEY = 'reading-notes';
+/**
+ * Each editor keeps one JSON document in KV: a list under a named field.
+ * `snapshot` prefixes the daily copies taken before a write.
+ */
+const STORES = {
+  '/api/notes': { key: 'reading-notes', field: 'books', snapshot: 'snapshot:' },
+  '/api/bulletins': { key: 'bulletins', field: 'weeks', snapshot: 'snapshot-bulletins:' },
+};
+
 const MAX_BODY = 2 * 1024 * 1024; // 2 MB is far more prose than this holds
 
 const JSON_HEADERS = {
@@ -24,9 +32,11 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-async function readNotes(env) {
-  const stored = await env.NOTES.get(NOTES_KEY, 'json');
-  return stored && Array.isArray(stored.books) ? stored : { version: 1, books: [] };
+async function read(env, store) {
+  const stored = await env.NOTES.get(store.key, 'json');
+  return stored && Array.isArray(stored[store.field])
+    ? stored
+    : { version: 1, [store.field]: [] };
 }
 
 /**
@@ -34,17 +44,17 @@ async function readNotes(env) {
  * overwrite loses at most one day rather than everything. KV has no history
  * of its own.
  */
-async function snapshot(env, previous) {
-  const key = 'snapshot:' + today();
+async function snapshot(env, store, previous) {
+  const key = store.snapshot + today();
   if (await env.NOTES.get(key)) return;
   await env.NOTES.put(key, JSON.stringify(previous), {
     expirationTtl: 60 * 60 * 24 * 90,
   });
 }
 
-async function handleNotes(request, env) {
+async function handleStore(request, env, store) {
   if (request.method === 'GET') {
-    return json(await readNotes(env));
+    return json(await read(env, store));
   }
 
   if (request.method === 'PUT') {
@@ -59,18 +69,18 @@ async function handleNotes(request, env) {
     } catch (e) {
       return json({ error: 'Body is not JSON.' }, 400);
     }
-    if (!incoming || !Array.isArray(incoming.books)) {
-      return json({ error: 'Expected { books: [] }.' }, 400);
+    if (!incoming || !Array.isArray(incoming[store.field])) {
+      return json({ error: 'Expected { ' + store.field + ': [] }.' }, 400);
     }
 
-    const previous = await readNotes(env);
-    await snapshot(env, previous);
-    await env.NOTES.put(NOTES_KEY, JSON.stringify({
+    const previous = await read(env, store);
+    await snapshot(env, store, previous);
+    await env.NOTES.put(store.key, JSON.stringify({
       version: 1,
-      books: incoming.books,
+      [store.field]: incoming[store.field],
       savedAt: Date.now(),
     }));
-    return json({ ok: true, books: incoming.books.length });
+    return json({ ok: true, [store.field]: incoming[store.field].length });
   }
 
   return json({ error: 'Use GET or PUT.' }, 405);
@@ -80,8 +90,8 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    if (url.pathname === '/api/notes') {
-      return handleNotes(request, env);
+    if (Object.prototype.hasOwnProperty.call(STORES, url.pathname)) {
+      return handleStore(request, env, STORES[url.pathname]);
     }
 
     // Asset html_handling is off, so /reading.html stays /reading.html instead

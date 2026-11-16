@@ -25,7 +25,9 @@
       <a href="denominations.html">Denominations</a>
       <a href="terminology.html">Metaontology</a>
       <a href="reading.html" aria-current="page">Research</a>
+      <a href="bulletins.html" id="nav-bulletins" hidden>Bulletins</a>
     </nav>
+    <script>try { if (localStorage.getItem('christianity.bulletins.key')) document.getElementById('nav-bulletins').hidden = false; } catch (e) {}</script>
   </div>
 </header>
 
@@ -422,19 +424,23 @@
   // ---- notes markup ------------------------------------------------------
   // Notes are HTML now. Everything written to the page or read from a file
   // goes through this first: only these tags survive, and no attributes do,
-  // so an imported file cannot carry anything executable.
+  // so an imported file cannot carry anything executable. The markup is parsed
+  // in a separate inert document, so nothing in it loads or runs while it is
+  // being checked.
   var ALLOWED = ['P', 'BR', 'B', 'STRONG', 'I', 'EM', 'MARK', 'UL', 'OL', 'LI',
                  'BLOCKQUOTE', 'DIV'];
 
   function sanitize(html) {
-    var box = document.createElement('div');
-    box.innerHTML = html || '';
+    var box = new DOMParser().parseFromString(
+      '<!DOCTYPE html><body>' + (html || ''), 'text/html').body;
     (function walk(node) {
       var child = node.firstChild;
       while (child) {
         var next = child.nextSibling;
         if (child.nodeType === 1) {
           if (ALLOWED.indexOf(child.tagName) === -1) {
+            // What was inside takes its place and is checked in turn.
+            next = child.firstChild || next;
             while (child.firstChild) node.insertBefore(child.firstChild, child);
             node.removeChild(child);
           } else {

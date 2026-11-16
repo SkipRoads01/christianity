@@ -26,6 +26,17 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   `localStorage` under `christianity.reading.v1` and syncs through the Worker's
   `/api/notes` when it is reachable; export and import move a JSON file in and
   out, merging on book id.
+- `bulletins.html` — weekly notes on the parish bulletin, behind a passcode.
+  The page shows this week and next week, each named by its Sunday, with a
+  topic, a list of readings, and notes. The notes editor is the Research one
+  plus numbered lists, links, and a note attached to a selection. Earlier weeks
+  are listed below the two. State lives in `localStorage` under
+  `christianity.bulletins.v1` and syncs through the Worker's `/api/bulletins`
+  when it is reachable. The passcode is a gate, not encryption: the page holds
+  a salt and a hash, an unlocked device keeps the stretched passcode under
+  `christianity.bulletins.key`, and the other pages show the Bulletins nav link
+  only when that key is present. `scripts/bulletins-passcode.mjs` prints the
+  salt and hash for a new passcode.
 - `lightbox.js` — click a picture to see it larger. It builds its own trigger
   around every `figure img` on load, so a picture added later needs no markup:
   put the script on the page and it works. Include it on any page that grows a
@@ -37,7 +48,7 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
 - `sources/` — the reference PDFs each section was built from.
 
 Each page repeats the masthead and nav inline. There is no templating; when the
-nav changes, update all four pages.
+nav changes, update all five pages.
 
 `timeline.html` animates by setting `stroke-dashoffset` on each line to the x
 position of the current year. The year-to-x scale is written twice, in the SVG
@@ -62,8 +73,8 @@ not in the script, so it survives with JavaScript disabled.
   state, or a line explaining where data is stored has to say something. Keep
   those to the shortest plain statement that does the job.
 - Honor `prefers-reduced-motion` in anything animated.
-- Reading notes are private. Never add anything that uploads, syncs, or commits
-  them, and never seed the editor with example books.
+- Reading notes and bulletin notes are private. Never add anything that
+  uploads, syncs, or commits them, and never seed either editor with examples.
 - Prose follows the Google developer documentation style guide: second person,
   active voice, present tense, sentence case headings.
 
