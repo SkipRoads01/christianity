@@ -130,13 +130,21 @@
 
 <template id="tpl-reading">
   <li class="reading">
-    <input type="text" class="r-label" placeholder="Reading" aria-label="Reading" autocomplete="off" />
-    <input type="text" class="r-passage" placeholder="Passage" aria-label="Passage" autocomplete="off" />
-    <button type="button" class="icon-btn r-del" title="Remove reading" aria-label="Remove reading">&times;</button>
+    <div class="reading-row">
+      <input type="text" class="r-label" placeholder="Reading" aria-label="Reading" autocomplete="off" />
+      <input type="text" class="r-passage" placeholder="Passage" aria-label="Passage" autocomplete="off" />
+      <button type="button" class="icon-btn r-del" title="Remove reading" aria-label="Remove reading">&times;</button>
+    </div>
+    <details class="passage" open hidden>
+      <summary></summary>
+      <div class="passage-text"></div>
+    </details>
+    <p class="passage-none" hidden>No King James passage matches this.</p>
   </li>
 </template>
 
 <script src="sync.js"></script>
+<script src="passages.js"></script>
 <script>
 (function () {
   'use strict';
@@ -772,6 +780,44 @@
     return function unmount() { document.removeEventListener('selectionchange', follow); };
   }
 
+  // ---- the text of a reading ----------------------------------------------
+  // The passage is printed under its row from the King James files that ship
+  // with the site. It is looked up from the reference each time, not stored
+  // with the notes.
+  var PRINT_MS = 600;
+
+  function print(row, reading) {
+    var block = row.querySelector('.passage');
+    var none = row.querySelector('.passage-none');
+    var typed = reading.passage;
+    row.asked = typed;
+
+    if (!typed.trim()) {
+      block.hidden = true;
+      none.hidden = true;
+      return;
+    }
+
+    Passages.find(typed).then(function (found) {
+      if (row.asked !== typed) return;        // the field has changed since
+      block.hidden = !found;
+      none.hidden = !!found;
+      if (!found) return;
+      block.querySelector('summary').textContent = found.title + ' \u00b7 King James Version';
+      Passages.show(found, block.querySelector('.passage-text'));
+    }).catch(function () {
+      if (row.asked !== typed) return;
+      block.hidden = true;
+      none.hidden = true;
+    });
+  }
+
+  // Wait for a pause in typing, so half a reference does not print a chapter.
+  function printSoon(row, reading) {
+    if (row.printTimer) clearTimeout(row.printTimer);
+    row.printTimer = setTimeout(function () { print(row, reading); }, PRINT_MS);
+  }
+
   // ---- one week ----------------------------------------------------------
   var unmounts = [];
 
@@ -798,7 +844,12 @@
         name.value = reading.label;
         passage.value = reading.passage;
         name.addEventListener('input', function () { reading.label = this.value; touch(week); });
-        passage.addEventListener('input', function () { reading.passage = this.value; touch(week); });
+        passage.addEventListener('input', function () {
+          reading.passage = this.value;
+          touch(week);
+          printSoon(row, reading);
+        });
+        print(row, reading);
         row.querySelector('.r-del').addEventListener('click', function () {
           if (reading.passage.trim() && !window.confirm('Remove this reading?')) return;
           week.readings.splice(index, 1);

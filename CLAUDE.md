@@ -28,11 +28,21 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   merging on book id.
 - `bulletins.html` — weekly notes on the parish bulletin, behind a passcode.
   The page shows this week and next week, each named by its Sunday, with a
-  topic, a list of readings, and notes. The notes editor is the Research one
+  topic, a list of readings, and notes. Each reading prints its King James
+  text under the row as soon as the passage is entered; the text is looked up
+  from the reference every time, not stored. The notes editor is the Research one
   plus numbered lists, links, and a note attached to a selection. Earlier weeks
   are listed below the two. State lives in `localStorage` under
   `christianity.bulletins.v1` and syncs through `sync.js`. The other pages show
   the Bulletins nav link only on an unlocked device.
+- `passages.js` — reads a reference such as `Luke 21:5-19` or
+  `1 Cor 15:20-26, 28` and prints the verses. It knows the short forms of the
+  book names, ignores the letter on a half verse, and returns nothing when the
+  King James Version has no such verses, so a reference numbered for another
+  translation shows a plain message instead of the wrong text.
+- `bible/kjv/` — the King James Version with Apocrypha, one JSON file per
+  book, public domain. `scripts/build-kjv.py` builds it from eBible.org's USFM
+  files and documents the format. Do not edit the files by hand.
 - `sync.js` — the passcode, and keeping notes the same on every unlocked
   device. The passcode, stretched, is the key an unlocked device keeps under
   `christianity.bulletins.key`. That key opens the Bulletins page, decrypts the

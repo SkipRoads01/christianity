@@ -10,11 +10,12 @@ mkdir -p dist
 
 for f in index.html timeline.html denominations.html terminology.html \
          reading.html bulletins.html styles.css lightbox.js \
-         sync.js site.webmanifest; do
+         sync.js passages.js site.webmanifest; do
   cp "$f" dist/
 done
 
 cp -r assets dist/assets
+cp -r bible dist/bible
 
 echo "dist/ contains:"
 find dist -type f | sort

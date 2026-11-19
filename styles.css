@@ -1109,13 +1109,51 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .week .c-notes { min-height: 9rem; }
 
 .readings { list-style: none; margin: 0; padding: 0; }
-.reading { align-items: center; display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+.reading { margin-bottom: 0.5rem; }
+.reading-row { align-items: center; display: flex; gap: 0.5rem; }
 .reading .r-label { flex: 0 0 10rem; font-family: var(--sans); font-size: 0.875rem; }
 .reading .r-passage { flex: 1 1 auto; min-width: 0; }
 
 @media (max-width: 34rem) {
-  .reading { gap: 0.35rem; }
+  .reading-row { gap: 0.35rem; }
   .reading .r-label { flex-basis: 7.75rem; padding-inline: 0.45rem; }
+}
+
+/* The text of a reading, printed under its row. */
+.passage { border-left: 2px solid var(--rule-strong); margin: 0.6rem 0 1.25rem; padding-left: 0.9rem; }
+
+.passage summary {
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 0.8125rem;
+}
+
+.passage summary:hover, .passage summary:focus-visible { color: var(--accent); }
+.passage-text { margin-top: 0.5rem; }
+.passage-text p { font-size: 0.9375rem; line-height: 1.6; margin: 0; }
+.passage-text p + p { margin-top: 0.2rem; }
+.passage-text .passage-para { margin-top: 0.6rem; }
+.passage-text .passage-gap { margin-top: 1.1rem; }
+.passage-text p:first-child { margin-top: 0; }
+
+/* Tabular figures keep the verse numbers from jostling the text. */
+.passage-number {
+  color: var(--faint);
+  font-family: var(--sans);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.passage-title, .passage-head { color: var(--muted); font-style: italic; }
+.passage-title i, .passage-head i { font-style: normal; }
+
+.passage-none {
+  color: var(--faint);
+  font-family: var(--sans);
+  font-size: 0.8125rem;
+  margin: 0.3rem 0 0.75rem;
 }
 
 .week .toolbar { flex-wrap: wrap; }

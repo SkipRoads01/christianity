@@ -12,12 +12,14 @@ dependencies.
 | `denominations.html` | Two charts, five families, ten Protestant traditions, a ten-by-five comparison table, twenty dates. |
 | `terminology.html` | Twelve disputes, 325 to 1980. |
 | `reading.html` | Research notes by book and chapter. An editor, not a document: add a book, record its publication details, then add chapters and write notes under them. Notes take bold, italic, highlight, lists and quotations. |
-| `bulletins.html` | Notes on the weekly parish bulletin, behind a passcode. This week and next week, each with a topic, readings, and notes; earlier weeks listed below. The nav link appears only on a device that has unlocked the page. |
+| `bulletins.html` | Notes on the weekly parish bulletin, behind a passcode. This week and next week, each with a topic, readings, and notes; earlier weeks listed below. Each reading prints its King James text when you enter the passage. The nav link appears only on a device that has unlocked the page. |
 
 ## Layout
 
 | Path | Purpose |
 | --- | --- |
+| `passages.js` | Reads a Bible reference and prints the passage on the Bulletins page. |
+| `bible/kjv/` | The King James Version with Apocrypha, one JSON file per book. Public domain, built from eBible.org's USFM files by `scripts/build-kjv.py`. |
 | `sync.js` | The passcode check, and syncing notes between unlocked devices. |
 | `worker.js` | The Cloudflare Worker: a copy of the site and the notes store. |
 | `styles.css` | All styling. Colors are custom properties in the `:root` block at the top, with a dark palette in the `prefers-color-scheme` block below it. |
