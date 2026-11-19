@@ -811,7 +811,7 @@ figcaption {
   text-transform: uppercase;
 }
 
-input[type="text"], input[type="password"], input[type="date"], textarea {
+input[type="text"], input[type="password"], textarea {
   background: var(--surface);
   border: 1px solid var(--rule-strong);
   border-radius: 3px;
@@ -824,7 +824,7 @@ input[type="text"], input[type="password"], input[type="date"], textarea {
 
 textarea { font-size: 0.9375rem; line-height: 1.6; resize: vertical; }
 
-input[type="text"]:focus, input[type="password"]:focus, input[type="date"]:focus, textarea:focus {
+input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
   border-color: var(--accent);
   outline: 2px solid transparent;
   outline-offset: 0;
@@ -1117,10 +1117,6 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
   .reading { gap: 0.35rem; }
   .reading .r-label { flex-basis: 7.75rem; padding-inline: 0.45rem; }
 }
-
-/* The date field sits in a row of buttons and takes their size, not the
-   full width a text field gets. */
-.bar-actions input[type="date"] { font-family: var(--sans); font-size: 0.875rem; padding: 0.3rem 0.5rem; width: auto; }
 
 .week .toolbar { flex-wrap: wrap; }
 .tb-word { font-family: var(--sans); font-size: 0.8125rem; }

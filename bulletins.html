@@ -64,10 +64,6 @@
 
       <div class="bar bar-sub">
         <h3>Earlier weeks</h3>
-        <div class="bar-actions">
-          <input type="date" id="pick" aria-label="A date in the week to open" />
-          <button type="button" class="btn" id="open-week">Open week</button>
-        </div>
       </div>
       <ul class="books" id="earlier"></ul>
     </div>
@@ -200,7 +196,7 @@
   var KEY = 'christianity.bulletins.v1';
   var TOMBSTONE_DAYS = 90;
   var READINGS = ['First reading', 'Psalm', 'Second reading', 'Gospel'];
-  var RECENT_WEEKS = 4;
+  var FIRST_WEEK = '2026-11-08';   // the first bulletin on record
 
   var data = { version: 1, weeks: [] };
   var link = null;           // the running sync, while the page is unlocked
@@ -835,7 +831,6 @@
     var current = thisWeek();
     var next = plusDays(current, 7);
     shownThis = current;
-    $('pick').max = plusDays(next, 6);
 
     if (open && (open >= current || (find(open) || {}).deleted)) open = null;
 
@@ -857,11 +852,10 @@
 
     var list = $('earlier');
     list.textContent = '';
-    // The four Sundays before this one are always listed, written up or not,
-    // so a bulletin that was missed can be opened and filled in. Older weeks
-    // are listed once they hold something.
+    // Every Sunday from the first bulletin to last week is listed, written up
+    // or not, so a week that was missed can be opened and filled in.
     var ids = {};
-    for (var back = 1; back <= RECENT_WEEKS; back++) ids[plusDays(current, -7 * back)] = true;
+    for (var id = FIRST_WEEK; id < current; id = plusDays(id, 7)) ids[id] = true;
     data.weeks.forEach(function (w) {
       if (!w.deleted && w.id < current && !isEmpty(entry(w.id))) ids[w.id] = true;
     });
@@ -903,15 +897,6 @@
 
   // ---- actions -----------------------------------------------------------
   $('back').addEventListener('click', function () { go(null); });
-
-  $('open-week').addEventListener('click', function () {
-    var picked = $('pick').value;
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(picked)) { $('pick').focus(); return; }
-    var id = iso(sundayOf(fromIso(picked)));
-    if (id > plusDays(thisWeek(), 7)) { $('pick').focus(); return; }
-    $('pick').value = '';
-    go(id);
-  });
 
   $('delete-week').addEventListener('click', function () {
     if (!open) return;
