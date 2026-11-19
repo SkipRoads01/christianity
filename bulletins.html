@@ -69,7 +69,6 @@
           <button type="button" class="btn" id="open-week">Open week</button>
         </div>
       </div>
-      <p class="empty" id="empty-earlier" hidden>No earlier weeks yet.</p>
       <ul class="books" id="earlier"></ul>
     </div>
 
@@ -201,6 +200,7 @@
   var KEY = 'christianity.bulletins.v1';
   var TOMBSTONE_DAYS = 90;
   var READINGS = ['First reading', 'Psalm', 'Second reading', 'Gospel'];
+  var RECENT_WEEKS = 4;
 
   var data = { version: 1, weeks: [] };
   var link = null;           // the running sync, while the page is unlocked
@@ -320,6 +320,7 @@
       if (old) data.weeks[data.weeks.indexOf(old)] = week; else data.weeks.push(week);
     }
     week.updatedAt = now();
+    if (open === week.id) $('delete-week').parentNode.hidden = false;
     save();
   }
 
@@ -843,6 +844,7 @@
 
     if (open) {
       $('one-week').appendChild(buildWeek(open, ''));
+      $('delete-week').parentNode.hidden = !find(open);
       $('home').hidden = true;
       $('one').hidden = false;
       return;
@@ -855,12 +857,16 @@
 
     var list = $('earlier');
     list.textContent = '';
-    var earlier = data.weeks.filter(function (w) {
-      return !w.deleted && w.id < current && !isEmpty(entry(w.id));
-    }).sort(function (a, b) { return a.id < b.id ? 1 : -1; });
-    $('empty-earlier').hidden = earlier.length > 0;
+    // The four Sundays before this one are always listed, written up or not,
+    // so a bulletin that was missed can be opened and filled in. Older weeks
+    // are listed once they hold something.
+    var ids = {};
+    for (var back = 1; back <= RECENT_WEEKS; back++) ids[plusDays(current, -7 * back)] = true;
+    data.weeks.forEach(function (w) {
+      if (!w.deleted && w.id < current && !isEmpty(entry(w.id))) ids[w.id] = true;
+    });
 
-    earlier.forEach(function (w) {
+    Object.keys(ids).sort().reverse().map(entry).forEach(function (w) {
       var li = document.createElement('li');
       var row = document.createElement('button');
       row.type = 'button';
@@ -877,8 +883,7 @@
       var passages = w.readings.map(function (r) { return r.passage.trim(); })
         .filter(function (p) { return p; });
       if (passages.length) bits.push(passages.join('; '));
-      meta.textContent = bits.join(' · ');
-      meta.hidden = bits.length === 0;
+      meta.textContent = bits.length ? bits.join(' \u00b7 ') : 'No notes';
 
       row.appendChild(title);
       row.appendChild(meta);
