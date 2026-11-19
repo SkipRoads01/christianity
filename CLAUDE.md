@@ -23,20 +23,31 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   list of chapters holding notes. Notes are rich text, stored as HTML and run
   through a tag allowlist on every read and write, so an imported file cannot
   carry anything executable. Pasting inserts plain text. State lives in
-  `localStorage` under `christianity.reading.v1` and syncs through the Worker's
-  `/api/notes` when it is reachable; export and import move a JSON file in and
-  out, merging on book id.
+  `localStorage` under `christianity.reading.v1` and, on an unlocked device,
+  syncs through `sync.js`; export and import move a JSON file in and out,
+  merging on book id.
 - `bulletins.html` — weekly notes on the parish bulletin, behind a passcode.
   The page shows this week and next week, each named by its Sunday, with a
   topic, a list of readings, and notes. The notes editor is the Research one
   plus numbered lists, links, and a note attached to a selection. Earlier weeks
   are listed below the two. State lives in `localStorage` under
-  `christianity.bulletins.v1` and syncs through the Worker's `/api/bulletins`
-  when it is reachable. The passcode is a gate, not encryption: the page holds
-  a salt and a hash, an unlocked device keeps the stretched passcode under
-  `christianity.bulletins.key`, and the other pages show the Bulletins nav link
-  only when that key is present. `scripts/bulletins-passcode.mjs` prints the
-  salt and hash for a new passcode.
+  `christianity.bulletins.v1` and syncs through `sync.js`. The other pages show
+  the Bulletins nav link only on an unlocked device.
+- `sync.js` — the passcode, and keeping notes the same on every unlocked
+  device. The passcode, stretched, is the key an unlocked device keeps under
+  `christianity.bulletins.key`. That key opens the Bulletins page, decrypts the
+  address of the notes store, and is the credential the store asks for.
+  Research and Bulletins each hand it a list; it sends the list to the store,
+  takes back the merged result, retries when the store is out of reach, and
+  shows the state in the page's `#sync-state`. A device that has not been
+  unlocked keeps its notes to itself and sends nothing.
+- `worker.js` — a Cloudflare Worker: a copy of the site, and the notes store at
+  `/api/notes` and `/api/bulletins`. The store checks the key on every request
+  and merges what a device sends with what it holds, newest version of each
+  book or week winning, so a device with an old copy cannot remove another
+  device's work. `build.sh` assembles what the Worker serves.
+- `scripts/passcode.mjs` — changes the passcode in `sync.js` and `worker.js`
+  together.
 - `lightbox.js` — click a picture to see it larger. It builds its own trigger
   around every `figure img` on load, so a picture added later needs no markup:
   put the script on the page and it works. Include it on any page that grows a
@@ -73,8 +84,12 @@ not in the script, so it survives with JavaScript disabled.
   state, or a line explaining where data is stored has to say something. Keep
   those to the shortest plain statement that does the job.
 - Honor `prefers-reduced-motion` in anything animated.
-- Reading notes and bulletin notes are private. Never add anything that
+- Reading notes and bulletin notes are private. They leave a device one way:
+  through `sync.js` to the store, with the key. Never add another path that
   uploads, syncs, or commits them, and never seed either editor with examples.
+- Pages serves every file in this repository to the public, including
+  `worker.js` and this file. Never commit the passcode, the key, or the address
+  of the notes store. `sync.js` holds the address encrypted for that reason.
 - Prose follows the Google developer documentation style guide: second person,
   active voice, present tense, sentence case headings.
 

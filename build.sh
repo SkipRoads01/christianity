@@ -10,7 +10,7 @@ mkdir -p dist
 
 for f in index.html timeline.html denominations.html terminology.html \
          reading.html bulletins.html styles.css lightbox.js \
-         site.webmanifest; do
+         sync.js site.webmanifest; do
   cp "$f" dist/
 done
 

@@ -694,6 +694,15 @@ figcaption {
 .bar-sub { border-top: 1px solid var(--rule); margin-top: 2.5rem; padding-top: 1.5rem; }
 .bar-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 
+/* Whether the notes on this device are level with the other devices. */
+.sync-state {
+  align-self: center;
+  color: var(--faint);
+  font-family: var(--sans);
+  font-size: 0.8125rem;
+  margin-right: 0.25rem;
+}
+
 .btn {
   background: var(--surface);
   border: 1px solid var(--rule-strong);

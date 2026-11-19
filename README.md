@@ -18,6 +18,8 @@ dependencies.
 
 | Path | Purpose |
 | --- | --- |
+| `sync.js` | The passcode check, and syncing notes between unlocked devices. |
+| `worker.js` | The Cloudflare Worker: a copy of the site and the notes store. |
 | `styles.css` | All styling. Colors are custom properties in the `:root` block at the top, with a dark palette in the `prefers-color-scheme` block below it. |
 | `sources/` | The original reference PDFs each section was built from. |
 | `assets/` | The home-screen icon at four sizes, and `pantocrator.jpg`, the photograph it is cropped from. |
@@ -37,26 +39,43 @@ one and change the other. The page respects `prefers-reduced-motion`, and every
 step is in the HTML rather than generated, so the content is there with
 JavaScript off — it is only the pacing that needs the script.
 
-## Where reading notes are kept
+## Where notes are kept
 
-In the browser, under the `localStorage` key `christianity.reading.v1`. Nothing
-is sent anywhere and nothing is committed, so notes stay private even though the
-site is public. The consequence is that they live in one browser on one device:
-**Export** writes a `reading-notes.json` file and **Import** merges one back in,
-which is how notes move between devices or get backed up. Import matches on book
-id, so re-importing a file updates those books rather than duplicating them.
+Research and Bulletins save to the browser first, under the `localStorage` keys
+`christianity.reading.v1` and `christianity.bulletins.v1`, so both work
+offline. Nothing is committed.
 
-## Bulletins
+A device that has been unlocked with the passcode also keeps its notes level
+with every other unlocked device. `sync.js` sends them to a small store, the
+Cloudflare Worker in `worker.js`, which checks the device's key, merges what it
+receives with what it holds, and sends back the result. The label beside the
+buttons says **Synced**, **Syncing**, or **Not synced yet. Trying again.** A
+device that has not been unlocked shows **Saved on this device only.** and sends
+nothing.
 
-`bulletins.html` asks for a passcode before it shows anything. The passcode is
-a gate against visitors, not encryption: the page carries a salt and a hash,
-and the notes are kept in the browser under the `localStorage` key
-`christianity.bulletins.v1`, the same way reading notes are. **Export** writes a
-`bulletins.json` file and **Import** merges one back in by week.
+To unlock a device, open `bulletins.html` and enter the passcode. The Bulletins
+link appears in the nav after that.
 
-To change the passcode, run `node scripts/bulletins-passcode.mjs "new passcode"`
-and paste the two lines it prints over `SALT` and `VERIFIER` in
-`bulletins.html`. Every device then has to unlock again.
+**Export** writes a JSON file and **Import** merges one back in, matching on
+book or week, so re-importing a file updates entries rather than duplicating
+them. Use them for a backup.
+
+## The passcode
+
+The passcode is never stored. `sync.js` holds a salt, the hash of the stretched
+passcode, and the store's address encrypted with it; `worker.js` holds the same
+hash. Every file in this repository is public through Pages, so the passcode
+is the only thing between a visitor and the notes. Choose four or more
+unrelated words.
+
+To change it:
+
+```
+node scripts/passcode.mjs "the old passcode" "the new passcode"
+```
+
+Commit and push `sync.js` and `worker.js` together. Every device then has to
+unlock again. The notes are untouched.
 
 ## View the site locally
 

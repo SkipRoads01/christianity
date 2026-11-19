@@ -50,6 +50,7 @@
     <div class="bar">
       <h2>Bulletins</h2>
       <div class="bar-actions">
+        <span class="sync-state" id="sync-state" role="status"></span>
         <button type="button" class="btn" id="export">Export</button>
         <button type="button" class="btn" id="import">Import</button>
         <input type="file" id="import-file" accept="application/json" hidden />
@@ -140,6 +141,7 @@
   </li>
 </template>
 
+<script src="sync.js"></script>
 <script>
 (function () {
   'use strict';
@@ -148,55 +150,13 @@
   var now = function () { return Date.now(); };
 
   // ---- lock --------------------------------------------------------------
-  // A gate, not encryption. It keeps the form away from anyone who finds the
-  // page; the notes themselves never leave this browser, so there is nothing
-  // here for the passcode to protect on the server. The page holds a salt and
-  // the hash of the stretched passcode, never the passcode. A device that has
-  // been unlocked keeps the stretched value and is not asked again.
-  var UNLOCK_KEY = 'christianity.bulletins.key';
-  var SALT = '008e53c663e24e8b39fefec0ff59e176';
-  var VERIFIER = '9d016c417b18e772570f78a1eceb3d5707662fb712ad80d2b2e2b92b00d6df79';
-  var ROUNDS = 310000;
-
-  function toHex(buffer) {
-    return Array.prototype.map.call(new Uint8Array(buffer), function (b) {
-      return ('0' + b.toString(16)).slice(-2);
-    }).join('');
-  }
-
-  function fromHex(hex) {
-    var out = new Uint8Array(hex.length / 2);
-    for (var i = 0; i < out.length; i++) out[i] = parseInt(hex.substr(i * 2, 2), 16);
-    return out;
-  }
-
-  // Phones capitalise and add spaces; neither should fail a correct passcode.
-  function tidy(passcode) {
-    return passcode.trim().toLowerCase().replace(/[\s_-]+/g, '-');
-  }
-
-  function stretch(passcode) {
-    var subtle = window.crypto.subtle;
-    return subtle.importKey('raw', new TextEncoder().encode(tidy(passcode)), 'PBKDF2', false, ['deriveBits'])
-      .then(function (key) {
-        return subtle.deriveBits(
-          { name: 'PBKDF2', hash: 'SHA-256', salt: fromHex(SALT), iterations: ROUNDS }, key, 256);
-      })
-      .then(toHex);
-  }
-
-  function matches(stretched) {
-    if (!/^[0-9a-f]{64}$/.test(stretched || '')) return Promise.resolve(false);
-    return window.crypto.subtle.digest('SHA-256', fromHex(stretched)).then(function (hash) {
-      return toHex(hash) === VERIFIER;
-    });
-  }
-
-  function remembered() {
-    try { return localStorage.getItem(UNLOCK_KEY); } catch (e) { return null; }
-  }
+  // A gate in front of the form. sync.js checks the passcode and keeps the
+  // key on a device that has been unlocked, so it is not asked again.
+  var device = null;         // what an unlocked device holds: its key and the store's address
 
   function showLock(message) {
+    if (link) { link.stop(); link = null; }
+    device = null;
     $('app').hidden = true;
     $('nav-bulletins').hidden = true;
     $('lock').hidden = false;
@@ -205,7 +165,8 @@
     $('passcode').focus();
   }
 
-  function showApp() {
+  function showApp(found) {
+    device = found;
     $('lock').hidden = true;
     $('nav-bulletins').hidden = false;
     $('app').hidden = false;
@@ -218,17 +179,11 @@
     if (!value.trim()) return;
     $('unlock').disabled = true;
     $('lock-state').textContent = 'Checking';
-    stretch(value).then(function (stretched) {
-      return matches(stretched).then(function (ok) {
-        $('unlock').disabled = false;
-        if (!ok) {
-          $('lock-state').textContent = 'That passcode is not right.';
-          $('passcode').select();
-          return;
-        }
-        try { localStorage.setItem(UNLOCK_KEY, stretched); } catch (err) { /* this visit only */ }
-        showApp();
-      });
+    Notes.unlock(value).then(function (found) {
+      $('unlock').disabled = false;
+      if (found) { showApp(found); return; }
+      $('lock-state').textContent = 'That passcode is not right.';
+      $('passcode').select();
     }).catch(function () {
       $('unlock').disabled = false;
       $('lock-state').textContent = 'This browser cannot check the passcode.';
@@ -236,22 +191,20 @@
   });
 
   $('lock-again').addEventListener('click', function () {
-    try { localStorage.removeItem(UNLOCK_KEY); } catch (e) { /* nothing stored */ }
+    Notes.lock();
     showLock('');
   });
 
   // ---- state -------------------------------------------------------------
   // localStorage is the source of truth for this device and works offline.
-  // The API is a reconciler on top of it, not a dependency.
+  // The store that sync.js talks to is a reconciler on top of it.
   var KEY = 'christianity.bulletins.v1';
-  var API = '/api/bulletins';
-  var PULL_MS = 30000;
-  var PUSH_MS = 2000;
   var TOMBSTONE_DAYS = 90;
   var READINGS = ['First reading', 'Psalm', 'Second reading', 'Gospel'];
 
   var data = { version: 1, weeks: [] };
-  var syncWorks = null;      // null until the first attempt settles
+  var link = null;           // the running sync, while the page is unlocked
+  var stale = false;         // newer notes arrived while a field had focus
   var open = null;           // id of the earlier week on screen, if any
   var shownThis = null;      // the Sunday the page was last drawn for
 
@@ -274,14 +227,18 @@
     }
   }
 
-  var saveTimer = null, pushTimer = null;
+  var saveTimer = null;
 
   function save() {
+    if (link) link.changed();
     if (saveTimer) clearTimeout(saveTimer);
-    saveTimer = setTimeout(function () {
-      persist();
-      schedulePush();
-    }, 250);
+    saveTimer = setTimeout(saved, 250);
+  }
+
+  function saved() {
+    if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+    persist();
+    if (link) link.changed();
   }
 
   // ---- weeks -------------------------------------------------------------
@@ -402,48 +359,27 @@
     return !!el && (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' || el.isContentEditable);
   }
 
-  function schedulePush() {
-    if (syncWorks === false) return;
-    if (pushTimer) clearTimeout(pushTimer);
-    pushTimer = setTimeout(push, PUSH_MS);
+  // Notes from another device. Never repaint a field the user is in the
+  // middle of: the merged notes are already saved, and the page catches up
+  // as soon as no field has focus.
+  function arrived(weeks, changed) {
+    data.weeks = weeks;
+    persist();
+    if (!changed) return;
+    if (typing()) stale = true; else render();
   }
 
-  function push() {
-    if (syncWorks === false) return;
-    fetch(API, {
-      method: 'PUT',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ version: 1, weeks: data.weeks })
-    }).then(function (r) {
-      syncWorks = r.ok;
-    }).catch(function () {
-      syncWorks = false;
+  function connect() {
+    if (link) link.stop();
+    link = Notes.sync({
+      device: device,
+      path: '/api/bulletins',
+      field: 'weeks',
+      read: function () { return data.weeks; },
+      write: arrived,
+      merge: merge,
+      note: $('sync-state')
     });
-  }
-
-  function pull() {
-    if (syncWorks === false || !navigator.onLine) return;
-    fetch(API, { headers: { 'accept': 'application/json' } })
-      .then(function (r) {
-        if (!r.ok) throw new Error(String(r.status));
-        return r.json();
-      })
-      .then(function (remote) {
-        syncWorks = true;
-        if (!remote || !Array.isArray(remote.weeks)) return;
-
-        var before = JSON.stringify(data.weeks);
-        data.weeks = merge(data.weeks, remote.weeks);
-        if (JSON.stringify(data.weeks) === before) return;
-
-        persist();
-        // Never repaint a field the user is in the middle of: the merged data
-        // is already saved and appears at the next natural render.
-        if (!typing()) render();
-      })
-      .catch(function () {
-        syncWorks = false;
-      });
   }
 
   // ---- notes markup ------------------------------------------------------
@@ -891,6 +827,7 @@
 
   // ---- the page ----------------------------------------------------------
   function render() {
+    stale = false;
     unmounts.forEach(function (off) { off(); });
     unmounts = [];
 
@@ -977,8 +914,7 @@
     var week = find(open);
     // Replace with a tombstone so the deletion reaches other devices.
     if (week) data.weeks[data.weeks.indexOf(week)] = { id: open, deleted: true, updatedAt: now() };
-    persist();
-    schedulePush();
+    saved();
     go(null);
   });
 
@@ -1016,8 +952,7 @@
       var stamp = now();
       incoming.weeks.forEach(function (w) { if (w) w.updatedAt = stamp; });
       data.weeks = merge(data.weeks, incoming.weeks);
-      persist();
-      schedulePush();
+      saved();
       go(null);
     };
     reader.readAsText(file);
@@ -1028,32 +963,29 @@
   var started = false;
 
   function refresh() {
-    if ($('app').hidden) return;
+    if ($('app').hidden || typing()) return;
     // The week turns over at midnight on Sunday while the page sits open.
-    if (thisWeek() !== shownThis && !typing()) render();
-    pull();
+    if (stale || thisWeek() !== shownThis) render();
   }
 
   function start() {
     load();
     render();
-    pull();
+    connect();
     if (started) return;
     started = true;
-    setInterval(function () {
-      if (document.visibilityState === 'visible') refresh();
-    }, PULL_MS);
+    setInterval(refresh, 5000);
     window.addEventListener('focus', refresh);
-    window.addEventListener('online', function () { syncWorks = null; refresh(); });
+    // Leaving the page: do not wait out the save delay.
+    window.addEventListener('pagehide', function () { if (saveTimer) saved(); });
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden' && saveTimer) saved();
+    });
   }
 
-  if (!window.crypto || !window.crypto.subtle) {
-    showLock('This browser cannot check the passcode.');
-  } else {
-    matches(remembered()).then(function (ok) {
-      if (ok) showApp(); else showLock('');
-    }).catch(function () { showLock(''); });
-  }
+  Notes.unlocked().then(function (found) {
+    if (found) showApp(found); else showLock('');
+  });
 }());
 </script>
 
