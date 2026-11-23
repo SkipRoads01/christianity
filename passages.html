@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Favorites &middot; Christianity: History, Theology, and Civilization</title>
+<title>Passages &middot; Christianity: History, Theology, and Civilization</title>
 <meta name="robots" content="noindex" />
 <link rel="icon" href="assets/icon-32.png" sizes="32x32" />
 <link rel="apple-touch-icon" href="assets/icon-180.png" />
@@ -25,7 +25,7 @@
       <a href="denominations.html">Denominations</a>
       <a href="terminology.html">Metaontology</a>
       <a href="reading.html">Research</a>
-      <a href="favorites.html" aria-current="page">Favorites</a>
+      <a href="passages.html" aria-current="page">Passages</a>
       <a href="bulletins.html" id="nav-bulletins" hidden>Bulletins</a>
     </nav>
     <script>try { if (localStorage.getItem('christianity.bulletins.key')) document.getElementById('nav-bulletins').hidden = false; } catch (e) {}</script>
@@ -36,7 +36,7 @@
 
   <section>
     <div class="bar">
-      <h2>Favorites</h2>
+      <h2>Passages</h2>
       <div class="bar-actions">
         <span class="sync-state" id="sync-state" role="status"></span>
         <button type="button" class="btn btn-primary" id="add">Add passage</button>
@@ -47,13 +47,13 @@
     </div>
 
     <p class="empty" id="empty" hidden>No passages yet.</p>
-    <ol class="favorites" id="list"></ol>
+    <ol class="fav-list" id="list"></ol>
   </section>
 
 </main>
 
-<template id="tpl-favorite">
-  <li class="favorite">
+<template id="tpl-passage">
+  <li class="fav">
     <div class="reading-row">
       <input type="text" class="f-passage" placeholder="Passage, such as John 3:16" aria-label="Passage" autocomplete="off" />
       <button type="button" class="icon-btn f-del" title="Remove passage" aria-label="Remove passage">&times;</button>
@@ -79,7 +79,7 @@
   // ---- state -------------------------------------------------------------
   // localStorage is the source of truth for this device and works offline.
   // On an unlocked device, sync.js keeps it level with the other devices.
-  var KEY = 'christianity.favorites.v1';
+  var KEY = 'christianity.passages.v1';
   var TOMBSTONE_DAYS = 90;
 
   var data = { version: 1, passages: [] };
@@ -169,7 +169,7 @@
   function connect(device) {
     link = Notes.sync({
       device: device,
-      path: '/api/favorites',
+      path: '/api/passages',
       field: 'passages',
       read: function () { return data.passages; },
       write: arrived,
@@ -216,7 +216,7 @@
 
   // ---- the page ----------------------------------------------------------
   function build(item) {
-    var row = $('tpl-favorite').content.firstElementChild.cloneNode(true);
+    var row = $('tpl-passage').content.firstElementChild.cloneNode(true);
     var passage = row.querySelector('.f-passage');
     var note = row.querySelector('.f-note');
     row.dataset.id = item.id;
@@ -265,7 +265,7 @@
     data.passages.push(item);
     saved();
     render();
-    var field = document.querySelector('.favorite[data-id="' + item.id + '"] .f-passage');
+    var field = document.querySelector('.fav[data-id="' + item.id + '"] .f-passage');
     if (field) field.focus();
   });
 
@@ -274,7 +274,7 @@
     var href = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = href;
-    a.download = 'favorites.json';
+    a.download = 'passages.json';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

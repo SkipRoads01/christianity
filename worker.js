@@ -22,7 +22,7 @@ const ORIGINS = ['https://skiproads01.github.io'];
 const STORES = {
   '/api/notes': { key: 'reading-notes', field: 'books', snapshot: 'snapshot:' },
   '/api/bulletins': { key: 'bulletins', field: 'weeks', snapshot: 'snapshot-bulletins:' },
-  '/api/favorites': { key: 'favorites', field: 'passages', snapshot: 'snapshot-favorites:' },
+  '/api/passages': { key: 'passages', field: 'passages', snapshot: 'snapshot-passages:' },
 };
 
 const MAX_BODY = 2 * 1024 * 1024; // 2 MB is far more prose than this holds

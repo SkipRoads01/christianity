@@ -35,9 +35,9 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   are listed below the two. State lives in `localStorage` under
   `christianity.bulletins.v1` and syncs through `sync.js`. The other pages show
   the Bulletins nav link only on an unlocked device.
-- `favorites.html` — favorite passages. Each entry is a reference and a short
+- `passages.html` — favorite passages. Each entry is a reference and a short
   note, and prints its King James text the way a Bulletins reading does.
-  Newest first. State lives in `localStorage` under `christianity.favorites.v1`
+  Newest first. State lives in `localStorage` under `christianity.passages.v1`
   and, on an unlocked device, syncs through `sync.js`.
 - `passages.js` — reads a reference such as `Luke 21:5-19` or
   `1 Cor 15:20-26, 28` and prints the verses. It knows the short forms of the
@@ -51,12 +51,12 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   device. The passcode, stretched, is the key an unlocked device keeps under
   `christianity.bulletins.key`. That key opens the Bulletins page, decrypts the
   address of the notes store, and is the credential the store asks for.
-  Research, Favorites, and Bulletins each hand it a list; it sends the list to the store,
+  Research, Passages, and Bulletins each hand it a list; it sends the list to the store,
   takes back the merged result, retries when the store is out of reach, and
   shows the state in the page's `#sync-state`. A device that has not been
   unlocked keeps its notes to itself and sends nothing.
 - `worker.js` — a Cloudflare Worker: a copy of the site, and the notes store at
-  `/api/notes`, `/api/favorites`, and `/api/bulletins`. The store checks the key on every request
+  `/api/notes`, `/api/passages`, and `/api/bulletins`. The store checks the key on every request
   and merges what a device sends with what it holds, newest version of each
   book or week winning, so a device with an old copy cannot remove another
   device's work. `build.sh` assembles what the Worker serves.
@@ -98,7 +98,7 @@ not in the script, so it survives with JavaScript disabled.
   state, or a line explaining where data is stored has to say something. Keep
   those to the shortest plain statement that does the job.
 - Honor `prefers-reduced-motion` in anything animated.
-- Reading notes, favorites, and bulletin notes are private. They leave a device one way:
+- Reading notes, passages, and bulletin notes are private. They leave a device one way:
   through `sync.js` to the store, with the key. Never add another path that
   uploads, syncs, or commits them, and never seed any of them with examples.
 - Pages serves every file in this repository to the public, including

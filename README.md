@@ -12,14 +12,14 @@ dependencies.
 | `denominations.html` | Two charts, five families, ten Protestant traditions, a ten-by-five comparison table, twenty dates. |
 | `terminology.html` | Twelve disputes, 325 to 1980. |
 | `reading.html` | Research notes by book and chapter. An editor, not a document: add a book, record its publication details, then add chapters and write notes under them. Notes take bold, italic, highlight, lists and quotations. |
-| `favorites.html` | Favorite passages. Each entry is a reference and a note, and prints its King James text when you enter the reference. |
+| `passages.html` | Favorite passages. Each entry is a reference and a note, and prints its King James text when you enter the reference. |
 | `bulletins.html` | Notes on the weekly parish bulletin, behind a passcode. This week and next week, each with a topic, readings, and notes; earlier weeks listed below. Each reading prints its King James text when you enter the passage. The nav link appears only on a device that has unlocked the page. |
 
 ## Layout
 
 | Path | Purpose |
 | --- | --- |
-| `passages.js` | Reads a Bible reference and prints the passage on the Favorites and Bulletins pages. |
+| `passages.js` | Reads a Bible reference and prints the passage on the Passages and Bulletins pages. |
 | `bible/kjv/` | The King James Version with Apocrypha, one JSON file per book. Public domain, built from eBible.org's USFM files by `scripts/build-kjv.py`. |
 | `sync.js` | The passcode check, and syncing notes between unlocked devices. |
 | `worker.js` | The Cloudflare Worker: a copy of the site and the notes store. |
@@ -44,8 +44,8 @@ JavaScript off — it is only the pacing that needs the script.
 
 ## Where notes are kept
 
-Research, Favorites, and Bulletins save to the browser first, under the
-`localStorage` keys `christianity.reading.v1`, `christianity.favorites.v1`, and
+Research, Passages, and Bulletins save to the browser first, under the
+`localStorage` keys `christianity.reading.v1`, `christianity.passages.v1`, and
 `christianity.bulletins.v1`, so all three work offline. Nothing is committed.
 
 A device that has been unlocked with the passcode also keeps its notes level
