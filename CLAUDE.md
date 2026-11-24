@@ -31,8 +31,8 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   Trinity Sunday to the Sunday before Advent, its number after Pentecost, with a
   topic, a list of readings, and notes. Each reading prints its King James
   text under the row as soon as the passage is entered; the text is looked up
-  from the reference every time, not stored. The notes editor is the Research one
-  plus numbered lists, links, and a note attached to a selection. Earlier weeks
+  from the reference every time, not stored. The notes editor is `editor.js`.
+  Earlier weeks
   are listed below the two. State lives in `localStorage` under
   `christianity.bulletins.v1` and syncs through `sync.js`. The other pages show
   the Bulletins nav link only on an unlocked device.
@@ -40,6 +40,24 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   note, and prints its King James text the way a Bulletins reading does.
   Newest first. State lives in `localStorage` under `christianity.passages.v1`
   and, on an unlocked device, syncs through `sync.js`.
+- `ptsem.html` — the PTSEM section: Princeton Theological Seminary's
+  Certificate in Theology and Ministry. The seminary's logo, and the program
+  schedule as a dated list, one row per course. A course the owner has enrolled
+  in links to its own page. Dates and titles come from the seminary's page for
+  the certificate; check them there before changing a row.
+- `ptsem-history.html` — one course page: the course's facts, and its course
+  materials. A course page names its course in `<body data-course>`. To add a
+  course, copy this page, change the facts and the attribute, and link it from
+  the schedule.
+- `ptsem.js` — course materials on a course page: a list the owner keeps, each
+  item a title, a link, and notes. The list shows on an unlocked device only,
+  so a visitor sees the course and no form. State lives in `localStorage`
+  under `christianity.ptsem.v1`, one list for every course, and syncs through
+  `sync.js`.
+- `editor.js` — the notes editor Bulletins and the course pages share: bold,
+  italic, highlight, lists, quotation, links, and a note attached to a
+  selection. It also holds the tag allowlist every note passes through on
+  read and write. Research has an older editor of its own.
 - `passages.js` — reads a reference such as `Luke 21:5-19` or
   `1 Cor 15:20-26, 28` and prints the verses. It knows the short forms of the
   book names, ignores the letter on a half verse, and returns nothing when the
@@ -71,10 +89,12 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
 - `site.webmanifest`, `assets/icon-*.png` — home-screen name and icon. The icons
   are square crops of `assets/pantocrator.jpg`; regenerate all four sizes
   together if the crop changes.
+- `assets/ptsem-logo.svg`, `assets/ptsem-logo-white.svg` — the seminary's logo,
+  copied from ptsem.edu, in navy for the light palette and white for the dark.
 - `sources/` — the reference PDFs each section was built from.
 
 Each page repeats the masthead and nav inline. There is no templating; when the
-nav changes, update all six pages.
+nav changes, update all eight pages.
 
 `timeline.html` animates by setting `stroke-dashoffset` on each line to the x
 position of the current year. The year-to-x scale is written twice, in the SVG

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Introduction to Christian History &middot; PTSEM &middot; Christianity: History, Theology, and Civilization</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" href="assets/icon-32.png" sizes="32x32" />
+<link rel="apple-touch-icon" href="assets/icon-180.png" />
+<link rel="manifest" href="site.webmanifest" />
+<meta name="apple-mobile-web-app-title" content="Christianity" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#fbf9f5" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#161513" media="(prefers-color-scheme: dark)" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body data-course="history">
+
+<header class="masthead">
+  <div class="wrap">
+    <h1><a href="timeline.html">Christianity: History, Theology, and Civilization</a></h1>
+    <nav>
+      <a href="timeline.html">Timeline</a>
+      <a href="denominations.html">Denominations</a>
+      <a href="terminology.html">Metaontology</a>
+      <a href="reading.html">Research</a>
+      <a href="passages.html">Passages</a>
+      <a href="ptsem.html" aria-current="page">PTSEM</a>
+      <a href="bulletins.html" id="nav-bulletins" hidden>Bulletins</a>
+    </nav>
+    <script>try { if (localStorage.getItem('christianity.bulletins.key')) document.getElementById('nav-bulletins').hidden = false; } catch (e) {}</script>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section>
+    <p class="crumb"><a class="linkish" href="ptsem.html">&larr; PTSEM</a></p>
+
+    <div class="bar">
+      <h2>Introduction to Christian History: People, Traditions, and Change</h2>
+      <p class="pts-logo">
+        <img class="logo-light" src="assets/ptsem-logo.svg" alt="Princeton Theological Seminary" width="177" height="51" />
+        <img class="logo-dark" src="assets/ptsem-logo-white.svg" alt="Princeton Theological Seminary" width="177" height="51" />
+      </p>
+    </div>
+
+    <dl class="facts">
+      <div><dt>Program</dt><dd>Certificate in Theology and Ministry</dd></div>
+      <div><dt>Instructor</dt><dd>Nicole Reibe</dd></div>
+      <div><dt>Dates</dt><dd>January 25 to March 12, 2027</dd></div>
+      <div><dt>CEUs</dt><dd>3</dd></div>
+    </dl>
+
+    <!-- Course materials are private. They show on an unlocked device only,
+         so a visitor sees the course and no empty form. -->
+    <div id="materials" hidden>
+      <div class="bar bar-sub">
+        <h3>Course materials</h3>
+        <div class="bar-actions">
+          <span class="sync-state" id="sync-state" role="status"></span>
+          <button type="button" class="btn btn-primary" id="add">Add material</button>
+        </div>
+      </div>
+
+      <p class="empty" id="empty" hidden>No materials yet.</p>
+      <ol class="chapters" id="list"></ol>
+    </div>
+  </section>
+
+</main>
+
+<template id="tpl-material">
+  <li class="chapter material">
+    <div class="chapter-head">
+      <input type="text" class="c-title m-title" placeholder="Title" aria-label="Title" autocomplete="off" />
+      <span class="chapter-tools">
+        <button type="button" class="icon-btn m-up" title="Move up" aria-label="Move up">&uarr;</button>
+        <button type="button" class="icon-btn m-down" title="Move down" aria-label="Move down">&darr;</button>
+        <button type="button" class="icon-btn m-del" title="Remove material" aria-label="Remove material">&times;</button>
+      </span>
+    </div>
+    <div class="reading-row m-link-row">
+      <input type="text" class="m-link" placeholder="Link" aria-label="Link" inputmode="url"
+             autocomplete="off" autocapitalize="off" spellcheck="false" />
+      <a class="linkish m-open" target="_blank" rel="noopener noreferrer" hidden>Open</a>
+    </div>
+    <div class="editor-here"></div>
+  </li>
+</template>
+
+<script src="sync.js"></script>
+<script src="editor.js"></script>
+<script src="ptsem.js"></script>
+
+</body>
+</html>

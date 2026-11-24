@@ -1194,3 +1194,54 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 
 .c-notes a { text-underline-offset: 2px; }
 .c-notes span[data-note] { border-bottom: 1px dotted var(--accent); cursor: help; }
+
+/* ============================================================
+   PTSEM
+   ============================================================ */
+.pts-logo { margin: 0; max-width: none; }
+.pts-logo img { display: block; height: 2.75rem; width: auto; }
+
+/* The seminary's logo comes in navy and in white. Show the one that reads
+   against the page, by the same tests that pick the palette. */
+.pts-logo .logo-dark { display: none; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .pts-logo .logo-light { display: none; }
+  :root:not([data-theme="light"]) .pts-logo .logo-dark { display: block; }
+}
+
+:root[data-theme="dark"] .pts-logo .logo-light { display: none; }
+:root[data-theme="dark"] .pts-logo .logo-dark { display: block; }
+
+/* A long course title takes the row and lets the logo drop below it. */
+.bar h2 { min-width: 0; }
+
+/* Full month names need a wider date column than the years elsewhere. */
+.schedule div { grid-template-columns: 9.5rem 1fr; }
+.schedule .date-name a { color: inherit; text-underline-offset: 3px; }
+.schedule .date-name a:hover, .schedule .date-name a:focus-visible { color: var(--accent); }
+
+@media (max-width: 34rem) {
+  .schedule div { grid-template-columns: 1fr; }
+  .schedule dt, .schedule .date-name, .schedule dd { grid-column: 1; grid-row: auto; }
+}
+
+.facts { align-items: baseline; display: grid; gap: 0.4rem 1.5rem; grid-template-columns: max-content 1fr; margin: 0; }
+.facts div { display: contents; }
+
+.facts dt {
+  color: var(--faint);
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.facts dd { margin: 0; }
+
+.material .m-link-row { margin-bottom: 0.5rem; }
+.material .m-link { flex: 1 1 auto; font-family: var(--sans); font-size: 0.875rem; min-width: 0; }
+.material .toolbar { flex-wrap: wrap; }
+.icon-btn:disabled { cursor: default; opacity: 0.35; }
+.icon-btn:disabled:hover { border-color: transparent; color: var(--faint); }

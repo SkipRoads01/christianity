@@ -9,8 +9,9 @@ rm -rf dist
 mkdir -p dist
 
 for f in index.html timeline.html denominations.html terminology.html \
-         reading.html bulletins.html passages.html styles.css lightbox.js \
-         sync.js passages.js site.webmanifest; do
+         reading.html bulletins.html passages.html ptsem.html \
+         ptsem-history.html styles.css lightbox.js sync.js passages.js \
+         editor.js ptsem.js site.webmanifest; do
   cp "$f" dist/
 done
 

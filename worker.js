@@ -23,6 +23,7 @@ const STORES = {
   '/api/notes': { key: 'reading-notes', field: 'books', snapshot: 'snapshot:' },
   '/api/bulletins': { key: 'bulletins', field: 'weeks', snapshot: 'snapshot-bulletins:' },
   '/api/passages': { key: 'passages', field: 'passages', snapshot: 'snapshot-passages:' },
+  '/api/ptsem': { key: 'ptsem', field: 'materials', snapshot: 'snapshot-ptsem:' },
 };
 
 const MAX_BODY = 2 * 1024 * 1024; // 2 MB is far more prose than this holds
