@@ -1216,14 +1216,17 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 /* A long course title takes the row and lets the logo drop below it. */
 .bar h2 { min-width: 0; }
 
-/* Full month names need a wider date column than the years elsewhere. */
+/* Full month names need a wider date column than the years elsewhere. The
+   start and end dates sit on two lines beside the course. */
 .schedule div { grid-template-columns: 9.5rem 1fr; }
+.schedule dt span { display: block; }
 .schedule .date-name a { color: inherit; text-underline-offset: 3px; }
 .schedule .date-name a:hover, .schedule .date-name a:focus-visible { color: var(--accent); }
 
 @media (max-width: 34rem) {
   .schedule div { grid-template-columns: 1fr; }
-  .schedule dt, .schedule .date-name, .schedule dd { grid-column: 1; grid-row: auto; }
+  .schedule dt, .schedule .date-name { grid-column: 1; grid-row: auto; }
+  .schedule dt span { display: inline; }
 }
 
 .facts { align-items: baseline; display: grid; gap: 0.4rem 1.5rem; grid-template-columns: max-content 1fr; margin: 0; }
