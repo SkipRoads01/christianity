@@ -301,11 +301,16 @@ p + p { margin-top: 1rem; }
 .status-open { background: transparent; border-style: dashed; color: var(--muted); }
 
 /* ============================================================
-   Comparison table
+   Comparison tables
    ============================================================ */
+/* Three tables, each narrow enough to fit its frame on a laptop: followers,
+   belief, and practice. Every table lists the traditions in the same order. */
+.compare-title { margin: 2.75rem 0 0; }
+h2 + .compare-title { margin-top: 1.5rem; }
+
 .table-scroll {
   border: 1px solid var(--rule);
-  margin-top: 1.5rem;
+  margin-top: 0.9rem;
   margin-left: 50%;
   transform: translateX(-50%);
   width: min(68rem, calc(100vw - 5rem));
@@ -313,10 +318,9 @@ p + p { margin-top: 1rem; }
   -webkit-overflow-scrolling: touch;
 }
 
-table { border-collapse: collapse; font-size: 0.875rem; min-width: 104rem; width: 100%; }
-
-/* The last two columns carry the longest cells. */
-td:nth-child(n+8) { min-width: 15rem; }
+/* Fixed layout gives the question columns equal widths, so the two question
+   tables line up with each other down the page. */
+table { border-collapse: collapse; font-size: 0.875rem; table-layout: fixed; width: 100%; }
 
 th, td {
   border-bottom: 1px solid var(--rule);
@@ -332,48 +336,75 @@ thead th {
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.08em;
-  position: sticky;
-  top: 0;
   text-transform: uppercase;
 }
 
-tbody th {
-  background: var(--surface);
-  font-weight: 600;
-  min-width: 15rem;
-  width: 15rem;
-}
-
-/* Followers worldwide and in the United States, under the tradition's name. */
-tbody th .demo {
-  color: var(--muted);
-  display: block;
-  font-family: var(--sans);
-  font-size: 0.75rem;
-  font-weight: 400;
-  line-height: 1.45;
-  margin-top: 0.3rem;
-}
-
-/* With nine columns the table always scrolls sideways. On a screen wide
-   enough to spare the room, the tradition's name stays in view. */
-@media (min-width: 48rem) {
-  tbody th, thead th:first-child { left: 0; position: sticky; z-index: 1; }
-  thead th:first-child { z-index: 2; }
-  tbody th { box-shadow: 1px 0 0 var(--rule); }
-}
+/* The tradition column. Its width is set on the header cell because a fixed
+   layout takes column widths from the first row. */
+thead th:first-child { width: 11.5rem; }
+tbody th { background: var(--surface); font-weight: 600; }
 
 tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
 tbody td { color: var(--muted); font-family: var(--sans); line-height: 1.5; }
 
-/* What the percentages in the first column are measured against. */
-.table-note {
-  color: var(--faint);
-  font-family: var(--sans);
-  font-size: 0.8125rem;
-  margin-top: 0.5rem;
-  max-width: 42rem;
+/* Followers: a count, then its share of all Christians. The header says what
+   the share is measured against. */
+.followers thead th:nth-child(2), .followers thead th:nth-child(3) { width: 15rem; }
+.followers .num { color: var(--text); font-weight: 600; }
+.followers .pct { margin-left: 0.35rem; }
+
+thead th .of {
+  display: block;
+  font-weight: 400;
+  letter-spacing: 0;
+  margin-top: 0.15rem;
+  text-transform: none;
 }
+
+/* Between a phone and a laptop the question tables are wider than the frame.
+   They scroll sideways, and the tradition's name stays in view. */
+@media (max-width: 66rem) {
+  .questions table { width: 62rem; }
+  .followers thead th:nth-child(2), .followers thead th:nth-child(3) { width: 11rem; }
+  thead th:first-child, tbody th { left: 0; position: sticky; z-index: 1; }
+  tbody th { box-shadow: 1px 0 0 var(--rule); }
+  thead th:first-child { box-shadow: 1px 0 0 var(--rule); }
+}
+
+/* On a phone the frame runs edge to edge. The tradition's name holds still
+   and one question fills the rest of the screen; a swipe brings the next
+   question in and it settles in place. The edge of the next column shows, so
+   nothing has to say there is more. */
+@media (max-width: 40rem) {
+  .table-scroll {
+    border-left: 0;
+    border-right: 0;
+    scroll-padding-left: 7.75rem;
+    scroll-snap-type: x mandatory;
+    width: 100vw;
+  }
+
+  table { font-size: 0.8125rem; }
+  th, td { padding: 0.7rem 0.75rem; }
+  thead th:first-child { width: 7.75rem; }
+  thead th:first-child, tbody th { padding-left: 1.5rem; }
+  tbody th { font-size: 0.8125rem; line-height: 1.35; }
+
+  .questions table { width: calc(7.75rem + 5 * (100vw - 10.25rem)); }
+  .questions thead th:not(:first-child), .questions td { scroll-snap-align: start; }
+
+  /* Both counts fit beside the name; only the countries are off screen. */
+  .followers table { width: calc(7.75rem + 2 * 7rem + 13rem); }
+  .followers thead th:nth-child(2), .followers thead th:nth-child(3) { width: 7rem; }
+  .followers .num, .followers .pct { display: block; margin-left: 0; }
+  .followers td:last-child { scroll-snap-align: end; }
+  .followers thead th:nth-child(2), .followers td:nth-child(2) { scroll-snap-align: start; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .table-scroll { scroll-behavior: smooth; }
+}
+
 
 /* ============================================================
    Dated list
