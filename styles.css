@@ -313,7 +313,10 @@ p + p { margin-top: 1rem; }
   -webkit-overflow-scrolling: touch;
 }
 
-table { border-collapse: collapse; font-size: 0.875rem; min-width: 60rem; width: 100%; }
+table { border-collapse: collapse; font-size: 0.875rem; min-width: 104rem; width: 100%; }
+
+/* The last two columns carry the longest cells. */
+td:nth-child(n+8) { min-width: 15rem; }
 
 th, td {
   border-bottom: 1px solid var(--rule);
@@ -337,8 +340,27 @@ thead th {
 tbody th {
   background: var(--surface);
   font-weight: 600;
-  min-width: 11rem;
-  white-space: nowrap;
+  min-width: 15rem;
+  width: 15rem;
+}
+
+/* Followers worldwide and in the United States, under the tradition's name. */
+tbody th .demo {
+  color: var(--muted);
+  display: block;
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.45;
+  margin-top: 0.3rem;
+}
+
+/* With nine columns the table always scrolls sideways. On a screen wide
+   enough to spare the room, the tradition's name stays in view. */
+@media (min-width: 48rem) {
+  tbody th, thead th:first-child { left: 0; position: sticky; z-index: 1; }
+  thead th:first-child { z-index: 2; }
+  tbody th { box-shadow: 1px 0 0 var(--rule); }
 }
 
 tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
@@ -351,12 +373,15 @@ tbody td { color: var(--muted); font-family: var(--sans); line-height: 1.5; }
   margin-top: 0.5rem;
 }
 
-/* The table stops overflowing once the frame is wider than the table's own
-   min-width: the frame is min(68rem, 100vw - 5rem) and the table is 60rem, so
-   they meet at a 65rem viewport. Hide the hint above that, with a little room
-   for the scrollbar. Change either of those two widths and change this. */
-@media (min-width: 66rem) {
-  .scroll-hint { display: none; }
+/* The table is wider than its frame at every width, so the hint always
+   shows. If the table's min-width ever drops below the frame's 68rem, hide
+   the hint above the width where they meet. */
+.table-note {
+  color: var(--faint);
+  font-family: var(--sans);
+  font-size: 0.8125rem;
+  margin-top: 0.35rem;
+  max-width: 42rem;
 }
 
 /* ============================================================
