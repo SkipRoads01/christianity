@@ -366,21 +366,12 @@ tbody th .demo {
 tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
 tbody td { color: var(--muted); font-family: var(--sans); line-height: 1.5; }
 
-.scroll-hint {
-  color: var(--faint);
-  font-family: var(--sans);
-  font-size: 0.8125rem;
-  margin-top: 0.5rem;
-}
-
-/* The table is wider than its frame at every width, so the hint always
-   shows. If the table's min-width ever drops below the frame's 68rem, hide
-   the hint above the width where they meet. */
+/* What the percentages in the first column are measured against. */
 .table-note {
   color: var(--faint);
   font-family: var(--sans);
   font-size: 0.8125rem;
-  margin-top: 0.35rem;
+  margin-top: 0.5rem;
   max-width: 42rem;
 }
 
