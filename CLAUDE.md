@@ -17,7 +17,10 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   lists for the families and the Protestant branches, three comparison tables
   (followers, belief, practice) with the same eleven traditions as rows, and a
   dated list. On a phone the tables keep the tradition's name fixed and snap
-  one question into view at a time.
+  one question into view at a time. In the belief and practice tables,
+  cells in a column that open with the same statement share a soft tint
+  (`--tone-1` to `--tone-6`). `scripts/tone-tables.py` writes those classes;
+  run it after changing any cell.
 - `terminology.html` — section two. Twelve dispute entries, each with terms,
   pronunciation, body, figures, and resolution.
 - `reading.html` — the Research section: an editor, not a document. Books, each
