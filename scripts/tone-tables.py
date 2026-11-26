@@ -10,10 +10,13 @@ semicolon, or colon: "Opposed" in "Opposed; some churches allow it to save the
 mother's life". A cell whose opening no other cell in its column shares gets no
 tint.
 
-The tints are the --tone-1 to --tone-6 properties in styles.css. Within a
-column they are handed out in the order the answers first appear. Run this
-again after changing any cell in either table; it rewrites the classes in
-denominations.html and changes nothing else.
+Each column has its own hue, taken in order from the five in styles.css
+(--tint-1 to --tint-5), so no hue appears in two columns of a table. Within a
+column the answers differ by depth: the commonest answer gets the lightest
+shade, a, the next b, and a third c.
+
+Run this again after changing any cell in either table; it rewrites the
+classes in denominations.html and changes nothing else.
 """
 import html
 import os
@@ -22,7 +25,9 @@ import sys
 
 PAGE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'denominations.html')
 TABLES = ('Belief', 'Practice')
-TONES = 6
+HUES = 5
+DEPTHS = 'abc'
+CELL = r'<td(?: class="tint-\d[a-c]")?>(.*?)</td>'
 
 
 def opening(cell):
@@ -39,31 +44,35 @@ def main():
         body = page[body_start:body_end]
 
         rows = re.findall(r'<tr>.*?</tr>', body, re.S)
-        cells = [re.findall(r'<td(?: class="tone-\d")?>(.*?)</td>', row, re.S) for row in rows]
+        cells = [re.findall(CELL, row, re.S) for row in rows]
         width = len(cells[0])
         if any(len(c) != width for c in cells):
             sys.exit('%s: rows have different numbers of cells' % title)
+        if width > HUES:
+            sys.exit('%s: more columns than hues' % title)
 
-        tone = {}                      # (column, opening) -> tone number
+        tint = {}                      # (column, opening) -> class
         for col in range(width):
             seen = {}
             for row in cells:
-                seen.setdefault(opening(row[col]), 0)
-                seen[opening(row[col])] += 1
-            shared = [o for o, n in seen.items() if n > 1]
-            if len(shared) > TONES:
-                sys.exit('%s, column %d: more shared answers than tints' % (title, col + 1))
-            for number, o in enumerate(shared, 1):
-                tone[(col, o)] = number
+                seen[opening(row[col])] = seen.get(opening(row[col]), 0) + 1
+            # Commonest first; Python's sort keeps first-seen order among ties.
+            shared = sorted((o for o, n in seen.items() if n > 1), key=lambda o: -seen[o])
+            if len(shared) > len(DEPTHS):
+                sys.exit('%s, column %d: more shared answers than shades' % (title, col + 1))
+            for depth, o in zip(DEPTHS, shared):
+                tint[(col, o)] = 'tint-%d%s' % (col + 1, depth)
 
-        def retint(match, counter=[0]):
-            col = counter[0] % width
-            counter[0] += 1
-            number = tone.get((col, opening(match.group(1))))
-            mark = ' class="tone-%d"' % number if number else ''
+        count = [0]
+
+        def retint(match):
+            col = count[0] % width
+            count[0] += 1
+            name = tint.get((col, opening(match.group(1))))
+            mark = ' class="%s"' % name if name else ''
             return '<td%s>%s</td>' % (mark, match.group(1))
 
-        body = re.sub(r'<td(?: class="tone-\d")?>(.*?)</td>', retint, body, flags=re.S)
+        body = re.sub(CELL, retint, body, flags=re.S)
         page = page[:body_start] + body + page[body_end:]
 
     open(PAGE, 'w', encoding='utf-8').write(page)

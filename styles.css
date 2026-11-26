@@ -16,13 +16,24 @@
   --accent-soft: #f0e7d6;
   --backdrop: rgba(28, 26, 23, 0.72);
 
-  /* Soft tints for matching answers in the comparison tables. */
-  --tone-1: #f1e8d6;
-  --tone-2: #e3ecdf;
-  --tone-3: #e2e9f1;
-  --tone-4: #f1e3df;
-  --tone-5: #e9e4f0;
-  --tone-6: #e7ebd8;
+  /* Soft tints for matching answers in the comparison tables. Each column
+     has one hue: 1 rose, 2 amber, 3 green, 4 blue, 5 violet. Within a column
+     the answers differ by depth: a is the lightest, c the deepest. */
+  --tint-1a: #ffe8ea;
+  --tint-1b: #fed3d7;
+  --tint-1c: #f9c5ca;
+  --tint-2a: #f8eddc;
+  --tint-2b: #f2dcbd;
+  --tint-2c: #ead0a8;
+  --tint-3a: #e3f4e5;
+  --tint-3b: #cae9cf;
+  --tint-3c: #b9e0c0;
+  --tint-4a: #dff2fe;
+  --tint-4b: #c3e5fc;
+  --tint-4c: #b0dbf8;
+  --tint-5a: #f2eafd;
+  --tint-5b: #e7d8fa;
+  --tint-5c: #ddcbf5;
 
   --serif: Iowan Old Style, Palatino Linotype, Palatino, Georgia, serif;
   --sans: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif;
@@ -46,12 +57,21 @@
     --accent: #c9a668;
     --accent-soft: #2a241a;
   --backdrop: rgba(0, 0, 0, 0.8);
-    --tone-1: #2e2719;
-    --tone-2: #1f2a20;
-    --tone-3: #1e2731;
-    --tone-4: #30221f;
-    --tone-5: #28232f;
-    --tone-6: #272b1b;
+    --tint-1a: #2e1e1f;
+    --tint-1b: #422629;
+    --tint-1c: #512e32;
+    --tint-2a: #2a2114;
+    --tint-2b: #3b2c15;
+    --tint-2c: #483617;
+    --tint-3a: #1a261c;
+    --tint-3b: #1f3524;
+    --tint-3c: #24412b;
+    --tint-4a: #17252e;
+    --tint-4b: #193242;
+    --tint-4c: #1d3d51;
+    --tint-5a: #26202d;
+    --tint-5b: #342a40;
+    --tint-5c: #3f324f;
   }
 }
 
@@ -67,12 +87,21 @@
   --accent: #c9a668;
   --accent-soft: #2a241a;
   --backdrop: rgba(0, 0, 0, 0.8);
-  --tone-1: #2e2719;
-  --tone-2: #1f2a20;
-  --tone-3: #1e2731;
-  --tone-4: #30221f;
-  --tone-5: #28232f;
-  --tone-6: #272b1b;
+  --tint-1a: #2e1e1f;
+  --tint-1b: #422629;
+  --tint-1c: #512e32;
+  --tint-2a: #2a2114;
+  --tint-2b: #3b2c15;
+  --tint-2c: #483617;
+  --tint-3a: #1a261c;
+  --tint-3b: #1f3524;
+  --tint-3c: #24412b;
+  --tint-4a: #17252e;
+  --tint-4b: #193242;
+  --tint-4c: #1d3d51;
+  --tint-5a: #26202d;
+  --tint-5b: #342a40;
+  --tint-5c: #3f324f;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -368,14 +397,25 @@ tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
 tbody td { color: var(--muted); font-family: var(--sans); line-height: 1.5; }
 
 /* Cells in a column that open with the same statement share a tint, so the
-   traditions that give the same answer stand out together. The classes are
-   written by scripts/tone-tables.py. */
-.tone-1 { background: var(--tone-1); }
-.tone-2 { background: var(--tone-2); }
-.tone-3 { background: var(--tone-3); }
-.tone-4 { background: var(--tone-4); }
-.tone-5 { background: var(--tone-5); }
-.tone-6 { background: var(--tone-6); }
+   traditions that give the same answer stand out together. A column keeps to
+   one hue and no two columns in a table share one, so a colour never means
+   two things. Within a column the commonest answer takes the lightest shade.
+   The classes are written by scripts/tone-tables.py. */
+.tint-1a { background: var(--tint-1a); }
+.tint-1b { background: var(--tint-1b); }
+.tint-1c { background: var(--tint-1c); }
+.tint-2a { background: var(--tint-2a); }
+.tint-2b { background: var(--tint-2b); }
+.tint-2c { background: var(--tint-2c); }
+.tint-3a { background: var(--tint-3a); }
+.tint-3b { background: var(--tint-3b); }
+.tint-3c { background: var(--tint-3c); }
+.tint-4a { background: var(--tint-4a); }
+.tint-4b { background: var(--tint-4b); }
+.tint-4c { background: var(--tint-4c); }
+.tint-5a { background: var(--tint-5a); }
+.tint-5b { background: var(--tint-5b); }
+.tint-5c { background: var(--tint-5c); }
 
 /* Followers: a count, then its share of all Christians. The header says what
    the share is measured against. */
