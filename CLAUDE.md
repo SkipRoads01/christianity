@@ -44,7 +44,8 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   the Bulletins nav link only on an unlocked device.
 - `passages.html` — favorite passages. Each entry is a reference and a short
   note, and prints its King James text the way a Bulletins reading does.
-  Newest first. State lives in `localStorage` under `christianity.passages.v1`
+  The list sorts newest first or in the order of the books of the Bible; the
+  choice is kept per device and does not sync. State lives in `localStorage` under `christianity.passages.v1`
   and, on an unlocked device, syncs through `sync.js`.
 - `ptsem.html` — the PTSEM section: Princeton Theological Seminary's
   Certificate in Theology and Ministry. The seminary's logo, and the program

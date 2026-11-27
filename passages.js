@@ -371,5 +371,19 @@
     });
   }
 
-  window.Passages = { find: find, show: show, parse: parse };
+  // Where a reference falls in the Bible, as [book, chapter, verse], for
+  // putting references in order. Books run as the King James prints them: Old
+  // Testament, Apocrypha, New Testament. null when the words are not a
+  // reference. Only the start of the reference counts.
+  function place(text) {
+    var segments = parse(text);
+    if (!segments) return null;
+    var first = segments[0];
+    var book = 0;
+    while (BOOKS[book][0] !== first.code) book++;
+    var part = first.parts[0] || [];
+    return [book, part[0] || 0, part.length === 4 ? part[1] : 0];
+  }
+
+  window.Passages = { find: find, show: show, parse: parse, place: place };
 }());

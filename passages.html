@@ -47,6 +47,12 @@
       </div>
     </div>
 
+    <p class="sort" id="sort" role="group" aria-label="Sort" hidden>
+      <span class="sort-label">Sort</span>
+      <button type="button" class="sort-btn" data-sort="recent" aria-pressed="true">Most recent</button>
+      <button type="button" class="sort-btn" data-sort="bible" aria-pressed="false">Bible order</button>
+    </p>
+
     <p class="empty" id="empty" hidden>No passages yet.</p>
     <ol class="fav-list" id="list"></ol>
   </section>
@@ -126,8 +132,41 @@
       p.note = typeof p.note === 'string' ? p.note : '';
       p.createdAt = Number(p.createdAt) || Number(p.updatedAt) || 0;
       return p;
-    }).sort(function (a, b) { return b.createdAt - a.createdAt; });
+    }).sort(order === 'bible' ? byBible : byRecent);
   }
+
+  // ---- order -------------------------------------------------------------
+  // Most recent first, or in the order of the books of the Bible. The choice
+  // is kept on this device and is not part of what syncs.
+  var ORDER_KEY = 'christianity.passages.sort';
+  var order = 'recent';
+  try { if (localStorage.getItem(ORDER_KEY) === 'bible') order = 'bible'; } catch (e) { /* default */ }
+
+  function byRecent(a, b) { return b.createdAt - a.createdAt; }
+
+  // An entry with no reference yet, or one that cannot be read, comes first,
+  // where a new entry is expected and a mistyped one is seen.
+  function byBible(a, b) {
+    var x = Passages.place(a.passage), y = Passages.place(b.passage);
+    if (!x || !y) return x ? 1 : y ? -1 : byRecent(a, b);
+    return x[0] - y[0] || x[1] - y[1] || x[2] - y[2] || byRecent(a, b);
+  }
+
+  function showOrder(count) {
+    $('sort').hidden = count < 2;           // nothing to sort
+    Array.prototype.forEach.call(document.querySelectorAll('.sort-btn'), function (btn) {
+      btn.setAttribute('aria-pressed', String(btn.dataset.sort === order));
+    });
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.sort-btn'), function (btn) {
+    btn.addEventListener('click', function () {
+      if (order === btn.dataset.sort) return;
+      order = btn.dataset.sort;
+      try { localStorage.setItem(ORDER_KEY, order); } catch (e) { /* this visit only */ }
+      render();
+    });
+  });
 
   function touch(item) {
     item.updatedAt = now();
@@ -242,6 +281,9 @@
       item.passage = this.value;
       touch(item);
       printSoon(row, item.passage);
+      // In Bible order a changed reference may belong elsewhere in the list.
+      // It moves once no field has focus, not under the typist's hands.
+      if (order === 'bible') stale = true;
     });
 
     note.addEventListener('input', function () {
@@ -271,6 +313,7 @@
     list.textContent = '';
     items.forEach(function (item) { list.appendChild(build(item)); });
     $('empty').hidden = items.length > 0;
+    showOrder(items.length);
     fitAll();      // only once the notes are on the page do they have a height
   }
 

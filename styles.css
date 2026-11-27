@@ -1240,6 +1240,34 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 /* ============================================================
    Passages
    ============================================================ */
+/* Two ways to order the list. The one in use is underlined, as the current
+   page is in the nav. */
+.sort {
+  align-items: baseline;
+  display: flex;
+  font-family: var(--sans);
+  font-size: 0.8125rem;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin: -0.75rem 0 0.9rem;
+  max-width: none;
+}
+
+.sort[hidden] { display: none; }
+.sort-label { color: var(--faint); }
+
+.sort-btn {
+  background: none;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.35rem 0;
+}
+
+.sort-btn:hover, .sort-btn:focus-visible { color: var(--accent); }
+.sort-btn[aria-pressed="true"] { color: var(--text); text-decoration: underline; text-underline-offset: 4px; }
+
 .fav-list { list-style: none; margin: 0; padding: 0; }
 .fav { border-bottom: 1px solid var(--rule); padding: 1.25rem 0; }
 .fav:first-child { border-top: 1px solid var(--rule); }
