@@ -436,6 +436,10 @@
     var block = row.querySelector('.passage');
     var none = row.querySelector('.passage-none');
     var typed = reading.passage;
+    // In a Psalm row a reference with no book, such as 78:1-7, is a psalm.
+    if (typed.trim() && /^\s*psalm/i.test(reading.label) && !Passages.parse(typed)) {
+      typed = 'Psalm ' + typed;
+    }
     row.asked = typed;
 
     if (!typed.trim()) {
@@ -488,7 +492,7 @@
         var passage = row.querySelector('.r-passage');
         name.value = reading.label;
         passage.value = reading.passage;
-        name.addEventListener('input', function () { reading.label = this.value; touch(week); });
+        name.addEventListener('input', function () { reading.label = this.value; touch(week); printSoon(row, reading); });
         passage.addEventListener('input', function () {
           reading.passage = this.value;
           touch(week);
