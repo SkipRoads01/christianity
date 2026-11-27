@@ -35,7 +35,7 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
 - `bulletins.html` — weekly notes on the parish bulletin, behind a passcode.
   The page shows this week and next week, each named by its Sunday and, from
   Trinity Sunday to the Sunday before Advent, its number after Pentecost, with a
-  topic, a list of readings, and notes. Each reading prints its King James
+  list of readings (first lesson, psalm, second lesson, gospel) and notes. Each reading prints its King James
   text under the row as soon as the passage is entered; the text is looked up
   from the reference every time, not stored. The notes editor is `editor.js`.
   Earlier weeks

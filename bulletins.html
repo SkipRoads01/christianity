@@ -90,15 +90,10 @@
       <p class="w-day"></p>
     </header>
 
-    <label class="field">
-      <span>Topic</span>
-      <input type="text" class="w-topic" autocomplete="off" />
-    </label>
-
     <div class="field">
-      <span>Readings</span>
+      <span>Lessons</span>
       <ol class="readings"></ol>
-      <p><button type="button" class="linkish w-add">Add reading</button></p>
+      <p><button type="button" class="linkish w-add">Add lesson</button></p>
     </div>
 
     <div class="field">
@@ -111,9 +106,9 @@
 <template id="tpl-reading">
   <li class="reading">
     <div class="reading-row">
-      <input type="text" class="r-label" placeholder="Reading" aria-label="Reading" autocomplete="off" />
+      <input type="text" class="r-label" placeholder="Lesson" aria-label="Lesson" autocomplete="off" />
       <input type="text" class="r-passage" placeholder="Passage" aria-label="Passage" autocomplete="off" />
-      <button type="button" class="icon-btn r-del" title="Remove reading" aria-label="Remove reading">&times;</button>
+      <button type="button" class="icon-btn r-del" title="Remove lesson" aria-label="Remove lesson">&times;</button>
     </div>
     <details class="passage" open hidden>
       <summary></summary>
@@ -184,7 +179,14 @@
   // The store that sync.js talks to is a reconciler on top of it.
   var KEY = 'christianity.bulletins.v1';
   var TOMBSTONE_DAYS = 90;
-  var READINGS = ['First reading', 'Psalm', 'Second reading', 'Gospel'];
+  var READINGS = ['First lesson', 'Psalm', 'Second lesson', 'Gospel'];
+  // The names this page used before it took the bulletin's own.
+  var RENAMED = { 'First reading': 'First lesson', 'Second reading': 'Second lesson' };
+
+  function lessonName(label) {
+    label = String(label || '');
+    return RENAMED.hasOwnProperty(label) ? RENAMED[label] : label;
+  }
   var FIRST_WEEK = '2026-11-08';   // the first bulletin on record
 
   var data = { version: 1, weeks: [] };
@@ -320,7 +322,7 @@
     });
     var from = before || latest;
     if (!from) return READINGS;
-    return from.readings.map(function (r) { return String((r && r.label) || ''); });
+    return from.readings.map(function (r) { return lessonName(r && r.label); });
   }
 
   // The week on record, or a blank one that is not stored until it is edited.
@@ -328,16 +330,26 @@
     var week = find(id);
     if (!week || week.deleted) {
       return {
-        id: id, topic: '', notes: '', updatedAt: 0,
+        id: id, notes: '', updatedAt: 0,
         readings: readingNames(id).map(function (label) { return { label: label, passage: '' }; })
       };
     }
     // Synced and imported data is not trusted to have the right shape.
-    week.topic = typeof week.topic === 'string' ? week.topic : '';
     week.notes = typeof week.notes === 'string' ? week.notes : '';
     week.readings = (Array.isArray(week.readings) ? week.readings : []).map(function (r) {
-      return { label: String((r && r.label) || ''), passage: String((r && r.passage) || '') };
+      return { label: lessonName(r && r.label), passage: String((r && r.passage) || '') };
     });
+    // Weeks once had a topic field. Anything written in it moves to the top
+    // of that week's notes, so the words are kept now the field is gone.
+    if (typeof week.topic === 'string' && week.topic.trim()) {
+      var line = document.createElement('p');
+      line.textContent = week.topic.trim();
+      week.notes = line.outerHTML + week.notes;
+      delete week.topic;
+      touch(week);
+    } else if ('topic' in week) {
+      delete week.topic;
+    }
     return week;
   }
 
@@ -357,7 +369,6 @@
   }
 
   function isEmpty(week) {
-    if (week.topic && week.topic.trim()) return false;
     if (week.notes && textOf(week.notes)) return false;
     return !(week.readings || []).some(function (r) { return r && r.passage && String(r.passage).trim(); });
   }
@@ -459,7 +470,6 @@
   function buildWeek(id, label) {
     var week = entry(id);
     var node = $('tpl-week').content.firstElementChild.cloneNode(true);
-    var topic = node.querySelector('.w-topic');
     var list = node.querySelector('.readings');
 
     node.querySelector('.w-label').textContent = label;
@@ -469,8 +479,6 @@
     node.querySelector('.w-day').hidden = !afterPentecost(id);
     node.dataset.week = id;
 
-    topic.value = week.topic;
-    topic.addEventListener('input', function () { week.topic = this.value; touch(week); });
 
     function drawReadings() {
       list.textContent = '';
@@ -488,7 +496,7 @@
         });
         print(row, reading);
         row.querySelector('.r-del').addEventListener('click', function () {
-          if (reading.passage.trim() && !window.confirm('Remove this reading?')) return;
+          if (reading.passage.trim() && !window.confirm('Remove this lesson?')) return;
           week.readings.splice(index, 1);
           touch(week);
           drawReadings();
@@ -567,7 +575,6 @@
       meta.className = 'book-meta';
       var bits = [];
       if (afterPentecost(w.id)) bits.push(afterPentecost(w.id));
-      if (w.topic && w.topic.trim()) bits.push(w.topic.trim());
       var passages = w.readings.map(function (r) { return r.passage.trim(); })
         .filter(function (p) { return p; });
       if (passages.length) bits.push(passages.join('; '));

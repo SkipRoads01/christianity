@@ -15,7 +15,7 @@ dependencies.
 | `passages.html` | Favorite passages. Each entry is a reference and a note, and prints its King James text when you enter the reference. |
 | `ptsem.html` | Princeton Theological Seminary's Certificate in Theology and Ministry: the program schedule, with a link to each course the owner has enrolled in. |
 | `ptsem-history.html` | Introduction to Christian History: the course's facts and its course materials. The materials are private and show only on an unlocked device. |
-| `bulletins.html` | Notes on the weekly parish bulletin, behind a passcode. This week and next week, each with a topic, readings, and notes; earlier weeks listed below. Each reading prints its King James text when you enter the passage. The nav link appears only on a device that has unlocked the page. |
+| `bulletins.html` | Notes on the weekly parish bulletin, behind a passcode. This week and next week, each with its lessons and notes; earlier weeks listed below. Each reading prints its King James text when you enter the passage. The nav link appears only on a device that has unlocked the page. |
 
 ## Layout
 
