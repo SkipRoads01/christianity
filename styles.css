@@ -1130,6 +1130,29 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .fav .f-note { margin-top: 0.6rem; }
 .fav .passage { margin-bottom: 0; }
 
+.sort { align-items: center; display: flex; gap: 0.6rem; margin-bottom: 1rem; }
+.sort[hidden] { display: none; }
+.sort > span {
+  color: var(--faint);
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sort select {
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-radius: 3px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 0.875rem;
+  padding: 0.35rem 0.5rem;
+}
+
+.sort select:focus { border-color: var(--accent); outline: 2px solid transparent; }
+
 /* The text of a reading, printed under its row. */
 .passage { border-left: 2px solid var(--rule-strong); margin: 0.6rem 0 1.25rem; padding-left: 0.9rem; }
 

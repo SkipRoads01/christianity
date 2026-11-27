@@ -180,6 +180,25 @@
     return out;
   }
 
+  // ---- text order ---------------------------------------------------------
+  // Where a reference falls in the Bible, as [book, chapter, verse], for
+  // sorting. Null when the words are not a reference. It needs no file, so a
+  // bare number is read as a chapter except in the books that have only one.
+  var ONE_CHAPTER = { '2JN': 1, '3JN': 1, 'BEL': 1, 'JUD': 1, 'MAN': 1, 'OBA': 1, 'PHM': 1, 'S3Y': 1, 'SUS': 1 };
+  var INDEX = {};
+  BOOKS.forEach(function (b, i) { INDEX[b[0]] = i; });
+
+  function order(text) {
+    var segments = parse(text);
+    if (!segments) return null;
+    var first = segments[0];
+    var part = first.parts[0] || [];
+    if (part.length === 4) return [INDEX[first.code], part[0], part[1]];
+    if (!part.length) return [INDEX[first.code], 0, 0];
+    if (ONE_CHAPTER[first.code]) return [INDEX[first.code], 1, part[0]];
+    return [INDEX[first.code], part[0], 0];
+  }
+
   // ---- the text -----------------------------------------------------------
   var loading = {};
 
@@ -371,5 +390,5 @@
     });
   }
 
-  window.Passages = { find: find, show: show, parse: parse };
+  window.Passages = { find: find, show: show, parse: parse, order: order };
 }());

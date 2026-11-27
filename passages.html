@@ -46,6 +46,15 @@
       </div>
     </div>
 
+    <label class="sort" id="sort-field" hidden>
+      <span>Sort</span>
+      <select id="sort">
+        <option value="text">Text order</option>
+        <option value="oldest">Oldest to newest</option>
+        <option value="newest">Newest to oldest</option>
+      </select>
+    </label>
+
     <p class="empty" id="empty" hidden>No passages yet.</p>
     <ol class="fav-list" id="list"></ol>
   </section>
@@ -80,6 +89,8 @@
   // localStorage is the source of truth for this device and works offline.
   // On an unlocked device, sync.js keeps it level with the other devices.
   var KEY = 'christianity.passages.v1';
+  var SORT_KEY = 'christianity.passages.sort';   // this device's choice, not synced
+  var SORTS = { text: true, oldest: true, newest: true };
   var TOMBSTONE_DAYS = 90;
 
   var data = { version: 1, passages: [] };
@@ -125,7 +136,29 @@
       p.note = typeof p.note === 'string' ? p.note : '';
       p.createdAt = Number(p.createdAt) || Number(p.updatedAt) || 0;
       return p;
-    }).sort(function (a, b) { return b.createdAt - a.createdAt; });
+    }).sort(compare);
+  }
+
+  // ---- sort --------------------------------------------------------------
+  var sort = 'newest';
+  try {
+    var chosen = localStorage.getItem(SORT_KEY);
+    if (SORTS[chosen]) sort = chosen;
+  } catch (e) { /* default */ }
+
+  // In text order, an entry that is not yet a reference goes first, so a new
+  // one is at the top while it is being typed.
+  function compare(a, b) {
+    if (sort === 'oldest') return a.createdAt - b.createdAt;
+    if (sort === 'text') {
+      var x = Passages.order(a.passage), y = Passages.order(b.passage);
+      if (!x || !y) {
+        if (x || y) return x ? 1 : -1;
+      } else {
+        for (var i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] - y[i];
+      }
+    }
+    return b.createdAt - a.createdAt;
   }
 
   function touch(item) {
@@ -256,17 +289,40 @@
     list.textContent = '';
     items.forEach(function (item) { list.appendChild(build(item)); });
     $('empty').hidden = items.length > 0;
+    $('sort-field').hidden = items.length < 2;
+  }
+
+  // In text order an edited reference can belong somewhere else. Move it once
+  // focus leaves the list, so no row jumps while you are working in it.
+  function settle() {
+    if ($('list').contains(document.activeElement)) return;
+    var shown = Array.prototype.map.call($('list').children, function (li) { return li.dataset.id; });
+    var wanted = live().map(function (p) { return p.id; });
+    if (shown.join() !== wanted.join()) render();
+  }
+
+  $('list').addEventListener('focusout', function () { setTimeout(settle, 0); });
+
+  function focusRow(id, field) {
+    var el = document.querySelector('.fav[data-id="' + id + '"] ' + field);
+    if (el) el.focus({ preventScroll: false });
   }
 
   // ---- actions -----------------------------------------------------------
+  $('sort').value = sort;
+  $('sort').addEventListener('change', function () {
+    sort = SORTS[this.value] ? this.value : 'newest';
+    try { localStorage.setItem(SORT_KEY, sort); } catch (e) { /* this visit only */ }
+    render();
+  });
+
   $('add').addEventListener('click', function () {
     var stamp = now();
     var item = { id: uid(), passage: '', note: '', createdAt: stamp, updatedAt: stamp };
     data.passages.push(item);
     saved();
     render();
-    var field = document.querySelector('.fav[data-id="' + item.id + '"] .f-passage');
-    if (field) field.focus();
+    focusRow(item.id, '.f-passage');
   });
 
   $('export').addEventListener('click', function () {

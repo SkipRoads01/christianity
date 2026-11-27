@@ -38,7 +38,8 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   the Bulletins nav link only on an unlocked device.
 - `passages.html` — favorite passages. Each entry is a reference and a short
   note, and prints its King James text the way a Bulletins reading does.
-  Newest first. State lives in `localStorage` under `christianity.passages.v1`
+  A menu sorts them in text order, oldest first, or newest first, and the
+  device remembers the choice under `christianity.passages.sort`. State lives in `localStorage` under `christianity.passages.v1`
   and, on an unlocked device, syncs through `sync.js`.
 - `passages.js` — reads a reference such as `Luke 21:5-19` or
   `1 Cor 15:20-26, 28` and prints the verses. It knows the short forms of the
