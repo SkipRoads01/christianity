@@ -38,6 +38,8 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   list of readings (first lesson, psalm, second lesson, gospel) and notes. Each reading prints its King James
   text under the row as soon as the passage is entered; the text is looked up
   from the reference every time, not stored. The notes editor is `editor.js`.
+  Every change saves as it is typed; each week's Save button saves and syncs
+  at once and prints the result beside it.
   Earlier weeks
   are listed below the two. State lives in `localStorage` under
   `christianity.bulletins.v1` and syncs through `sync.js`. The other pages show

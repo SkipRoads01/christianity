@@ -100,6 +100,11 @@
       <span>Notes</span>
       <div class="editor-here"></div>
     </div>
+
+    <p class="save-row">
+      <button type="button" class="btn btn-primary w-save">Save</button>
+      <span class="save-state" role="status"></span>
+    </p>
   </article>
 </template>
 
@@ -224,8 +229,43 @@
 
   function saved() {
     if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
-    persist();
+    var kept = persist();
     if (link) link.changed();
+    return kept;
+  }
+
+  // ---- the Save button -----------------------------------------------------
+  // Every change is saved as it is typed. The button saves and sends at once,
+  // and says so, with the state of the sync after it.
+  var savedNote = null;      // the line beside the button last pressed
+
+  function saveNow(note) {
+    if (savedNote && savedNote !== note) savedNote.textContent = '';
+    savedNote = note;
+    if (!saved()) {
+      savedNote = null;
+      note.textContent = 'Not saved. This browser has no room left for notes.';
+      return;
+    }
+    if (link) link.now();
+    saveNote();
+  }
+
+  function saveNote() {
+    if (!savedNote) return;
+    var sync = $('sync-state').textContent.trim();
+    if (sync && !/\.$/.test(sync)) sync += '.';
+    // With no store, sync.js already says "Saved on this device only."
+    savedNote.textContent = /^Saved/.test(sync) ? sync : 'Saved.' + (sync ? ' ' + sync : '');
+  }
+
+  function unsaveNote() {
+    if (savedNote) savedNote.textContent = '';
+    savedNote = null;
+  }
+
+  if (window.MutationObserver) {
+    new MutationObserver(saveNote).observe($('sync-state'), { childList: true, characterData: true, subtree: true });
   }
 
   // ---- weeks -------------------------------------------------------------
@@ -360,6 +400,7 @@
       if (old) data.weeks[data.weeks.indexOf(old)] = week; else data.weeks.push(week);
     }
     week.updatedAt = now();
+    unsaveNote();
     if (open === week.id) $('delete-week').parentNode.hidden = false;
     save();
   }
@@ -518,6 +559,10 @@
       list.lastElementChild.querySelector('.r-label').focus();
     });
 
+    node.querySelector('.w-save').addEventListener('click', function () {
+      saveNow(node.querySelector('.save-state'));
+    });
+
     var editor = NotesEditor.build('Notes');
     node.querySelector('.editor-here').replaceWith(editor);
     unmounts.push(NotesEditor.mount(editor, {
@@ -530,6 +575,7 @@
   // ---- the page ----------------------------------------------------------
   function render() {
     stale = false;
+    savedNote = null;
     unmounts.forEach(function (off) { off(); });
     unmounts = [];
 
