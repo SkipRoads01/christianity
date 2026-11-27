@@ -27,13 +27,16 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   syncs through `sync.js`; export and import move a JSON file in and out,
   merging on book id.
 - `bulletins.html` — weekly notes on the parish bulletin, behind a passcode.
-  The page shows this week and next week, each named by its Sunday and, from
-  Trinity Sunday to the Sunday before Advent, its number after Pentecost, with a
+  The page lists every Sunday from the first bulletin to the one after the
+  coming Sunday, each with its date and, from Trinity Sunday to the Sunday
+  before Advent, its number after Pentecost. A menu sorts the list newest or
+  oldest first. Each week opens and closes on its own; the device remembers
+  the sort and which weeks are open, and opens on the coming Sunday when a new
+  week starts. An open week has a
   topic, a list of readings, and notes. Each reading prints its King James
   text under the row as soon as the passage is entered; the text is looked up
   from the reference every time, not stored. The notes editor is the Research one
-  plus numbered lists, links, and a note attached to a selection. Earlier weeks
-  are listed below the two. State lives in `localStorage` under
+  plus numbered lists, links, and a note attached to a selection. State lives in `localStorage` under
   `christianity.bulletins.v1` and syncs through `sync.js`. The other pages show
   the Bulletins nav link only on an unlocked device.
 - `passages.html` — favorite passages. Each entry is a reference and a short
