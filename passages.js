@@ -123,7 +123,7 @@
 
   // ---- reading the reference ---------------------------------------------
   // "1 Cor 15:20-26, 28; 16:1" becomes
-  //   [{ code: '1CO', parts: [[15,20,15,26], [28], [16,1,16,1]] }]
+  //   [{ code: '1CO', others: [], parts: [[15,20,15,26], [28], [16,1,16,1]] }]
   // A part of four numbers is chapter:verse to chapter:verse. A part of one
   // or two bare numbers is a verse or a chapter, which only the book can
   // settle, so that waits until the book has loaded.
@@ -139,6 +139,7 @@
 
     var out = [];
     var code = null;
+    var others = [];     // the other numbered books a bare name could mean
     var segments = clean.split(';');
 
     for (var i = 0; i < segments.length; i++) {
@@ -152,6 +153,15 @@
       }
       if (m[2]) {
         code = bookFor(m[1], m[2]);
+        others = [];
+        if (!code && !m[1]) {
+          // "Thessalonians 4:13" names no number. Keep each numbered book
+          // the name fits; the chapter and verse settle which one it is.
+          var fits = ['1', '2', '3'].map(function (n) { return bookFor(n, m[2]); })
+            .filter(function (c) { return c; });
+          code = fits[0] || null;
+          others = fits.slice(1);
+        }
         if (!code) return null;
       } else if (m[1] || !code) {
         return null;
@@ -175,7 +185,9 @@
           }
         }
       }
-      out.push({ code: code, parts: parts });
+      // A segment with no name of its own follows the segment that had one.
+      var lead = m[2] ? out.length : out[out.length - 1].lead;
+      out.push({ code: code, others: others, lead: lead, parts: parts });
     }
     return out;
   }
@@ -281,14 +293,33 @@
     var segments = parse(text);
     if (!segments) return Promise.resolve(null);
 
-    return Promise.all(segments.map(function (s) { return load(s.code); })).then(function (books) {
+    return Promise.all(segments.map(function (s) {
+      if (!s.others.length) return load(s.code);
+      // A name with no number: the book is the only one that has the verses,
+      // counting the verses of every segment that follows the name.
+      var codes = [s.code].concat(s.others);
+      var group = segments.filter(function (t) { return t.lead === s.lead; });
+      return Promise.all(codes.map(load)).then(function (all) {
+        var has = [];
+        all.forEach(function (book, n) {
+          if (group.every(function (t) { return settle(t.parts, book); })) has.push(n);
+        });
+        return has.length === 1 ? { code: codes[has[0]], book: all[has[0]] } : null;
+      });
+    })).then(function (books) {
+      for (var k = 0; k < segments.length; k++) {
+        if (!segments[k].others.length) continue;
+        if (!books[k]) return null;
+        segments[k].code = books[k].code;
+        books[k] = books[k].book;
+      }
       var titles = [];
       var lines = [];
       var chapters = {};       // how many chapters the passage draws on
       var settled = [];
 
       for (var i = 0; i < segments.length; i++) {
-        var ranges = settle(segments[i].parts, books[i]);
+        var ranges = books[i] && settle(segments[i].parts, books[i]);
         if (!ranges) return null;
         settled.push(ranges);
         titles.push(label(segments[i].code, ranges, books[i]));

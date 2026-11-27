@@ -67,7 +67,8 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   read and write. Research has an older editor of its own.
 - `passages.js` — reads a reference such as `Luke 21:5-19` or
   `1 Cor 15:20-26, 28` and prints the verses. It knows the short forms of the
-  book names, ignores the letter on a half verse, and returns nothing when the
+  book names, ignores the letter on a half verse, picks 1 Thessalonians for
+  `Thessalonians 4:13-18` because only that book has the verses, and returns nothing when the
   King James Version has no such verses, so a reference numbered for another
   translation shows a plain message instead of the wrong text.
 - `bible/kjv/` — the King James Version with Apocrypha, one JSON file per
