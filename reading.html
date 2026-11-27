@@ -330,8 +330,20 @@
     ['f-year', 'year'], ['f-details', 'details'], ['f-note', 'note']
   ];
 
+  // The note on the book is as tall as its text, so it never scrolls inside
+  // its own box. It can only be measured while the form is showing.
+  function fitNote() {
+    var area = $('f-note');
+    if (!area.offsetParent) return;
+    area.style.overflow = 'hidden';
+    area.style.resize = 'none';
+    area.style.height = 'auto';
+    area.style.height = (area.scrollHeight + area.offsetHeight - area.clientHeight) + 'px';
+  }
+
   function fillFields() {
     FIELDS.forEach(function (pair) { $(pair[0]).value = current[pair[1]] || ''; });
+    fitNote();
   }
 
   // A book's details are a form while you are entering them and a heading
@@ -352,6 +364,7 @@
     editing = true;
     $('book-header').hidden = true;
     $('book-form').hidden = false;
+    fitNote();
   }
 
   function showHeader() {
@@ -388,6 +401,8 @@
       save();
     });
   });
+  $('f-note').addEventListener('input', fitNote);
+  window.addEventListener('resize', fitNote);
 
   // ---- notes markup ------------------------------------------------------
   // Notes are HTML now. Everything written to the page or read from a file

@@ -216,6 +216,19 @@
   }
 
   // ---- the page ----------------------------------------------------------
+  // A note is as tall as its text, so it never scrolls inside its own box.
+  // The borders are added back because scrollHeight leaves them out.
+  function fit(area) {
+    area.style.overflow = 'hidden';
+    area.style.resize = 'none';
+    area.style.height = 'auto';
+    area.style.height = (area.scrollHeight + area.offsetHeight - area.clientHeight) + 'px';
+  }
+
+  function fitAll() {
+    Array.prototype.forEach.call(document.querySelectorAll('.f-note'), fit);
+  }
+
   function build(item) {
     var row = $('tpl-passage').content.firstElementChild.cloneNode(true);
     var passage = row.querySelector('.f-passage');
@@ -234,6 +247,7 @@
     note.addEventListener('input', function () {
       item.note = this.value;
       touch(item);
+      fit(this);
     });
 
     row.querySelector('.f-del').addEventListener('click', function () {
@@ -257,6 +271,7 @@
     list.textContent = '';
     items.forEach(function (item) { list.appendChild(build(item)); });
     $('empty').hidden = items.length > 0;
+    fitAll();      // only once the notes are on the page do they have a height
   }
 
   // ---- actions -----------------------------------------------------------
@@ -317,6 +332,8 @@
 
   setInterval(function () { if (stale && !typing()) render(); }, 5000);
   window.addEventListener('focus', function () { if (stale && !typing()) render(); });
+  // A narrower or wider window rewraps the notes.
+  window.addEventListener('resize', fitAll);
   // Leaving the page: do not wait out the save delay.
   window.addEventListener('pagehide', function () { if (saveTimer) saved(); });
   document.addEventListener('visibilitychange', function () {
