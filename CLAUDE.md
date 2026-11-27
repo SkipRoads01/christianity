@@ -33,20 +33,23 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   syncs through `sync.js`; export and import move a JSON file in and out,
   merging on book id.
 - `bulletins.html` — weekly notes on the parish bulletin, behind a passcode.
-  The page shows this week and next week, each named by its Sunday and, from
-  Trinity Sunday to the Sunday before Advent, its number after Pentecost, with a
-  list of readings (first lesson, psalm, second lesson, gospel) and notes. Each reading prints its King James
+  The page lists every Sunday from the first bulletin to the one after the
+  coming Sunday, each named by its date and, from Trinity Sunday to the Sunday
+  before Advent, its number after Pentecost. The list sorts oldest or newest
+  first, and each week opens and closes on its own. The device keeps the sort
+  and the open weeks, and opens on the coming Sunday when a new week starts.
+  An open week has a list of readings (first lesson, psalm, second lesson, gospel) and notes. Each reading prints its King James
   text under the row as soon as the passage is entered; the text is looked up
   from the reference every time, not stored. The notes editor is `editor.js`.
   Every change saves as it is typed; each week's Save button saves and syncs
   at once and prints the result beside it.
-  Earlier weeks
-  are listed below the two. State lives in `localStorage` under
+  State lives in `localStorage` under
   `christianity.bulletins.v1` and syncs through `sync.js`. The other pages show
   the Bulletins nav link only on an unlocked device.
 - `passages.html` — favorite passages. Each entry is a reference and a short
   note, and prints its King James text the way a Bulletins reading does.
-  The list sorts newest first or in the order of the books of the Bible; the
+  The list sorts in text order (the order of the books of the Bible), oldest
+  first, or newest first; the
   choice is kept per device and does not sync. State lives in `localStorage` under `christianity.passages.v1`
   and, on an unlocked device, syncs through `sync.js`.
 - `ptsem.html` — the PTSEM section: Princeton Theological Seminary's

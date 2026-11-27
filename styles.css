@@ -1220,9 +1220,52 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
   min-height: 1.5em;
 }
 
-.week + .week { border-top: 1px solid var(--rule); margin-top: 3rem; padding-top: 2.5rem; }
-.week-head h3 { font-size: 1.375rem; font-weight: 500; margin: 0.2rem 0 0; }
-.w-day { color: var(--muted); font-family: var(--sans); font-size: 0.875rem; margin: 0.25rem 0 0; }
+.week-list { list-style: none; margin: 0; padding: 0; }
+.week-item { border-bottom: 1px solid var(--rule); }
+.week-item:first-child { border-top: 1px solid var(--rule); }
+
+.week-toggle {
+  align-items: center;
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.9rem 0;
+  text-align: left;
+  width: 100%;
+}
+
+.week-toggle-text { min-width: 0; }
+.week-toggle .eyebrow { display: block; margin-bottom: 0.15rem; }
+.week-title { display: block; font-size: 1.0625rem; }
+.week-toggle:hover .week-title, .week-toggle:focus-visible .week-title { color: var(--accent); }
+
+.week-meta {
+  color: var(--faint);
+  display: block;
+  font-family: var(--sans);
+  font-size: 0.8125rem;
+  margin-top: 0.15rem;
+}
+
+/* A chevron drawn with two borders: pointing down when closed, up when open. */
+.week-chevron {
+  border-bottom: 2px solid var(--faint);
+  border-right: 2px solid var(--faint);
+  flex: 0 0 auto;
+  height: 0.5rem;
+  margin-right: 0.35rem;
+  transform: rotate(45deg);
+  width: 0.5rem;
+}
+
+.week-toggle[aria-expanded="true"] .week-chevron { transform: rotate(-135deg); }
+.week-body { padding-bottom: 2rem; }
+.week-body .week > .field:first-child { margin-top: 0.25rem; }
 .week .field { margin-top: 1.5rem; }
 .week .c-notes { min-height: 9rem; }
 .save-row { align-items: center; display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.25rem 0 0; }
@@ -1242,7 +1285,7 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 /* ============================================================
    Passages
    ============================================================ */
-/* Two ways to order the list. The one in use is underlined, as the current
+/* Ways to order a list, on Passages and Bulletins. The one in use is underlined, as the current
    page is in the nav. */
 .sort {
   align-items: baseline;

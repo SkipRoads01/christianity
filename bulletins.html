@@ -60,36 +60,20 @@
       </div>
     </div>
 
-    <!-- This week and next week -->
-    <div id="home">
-      <div id="weeks"></div>
+    <p class="sort" id="sort" role="group" aria-label="Sort">
+      <span class="sort-label">Sort</span>
+      <button type="button" class="sort-btn" data-sort="oldest" aria-pressed="false">Oldest to newest</button>
+      <button type="button" class="sort-btn" data-sort="newest" aria-pressed="true">Newest to oldest</button>
+    </p>
 
-      <div class="bar bar-sub">
-        <h3>Earlier weeks</h3>
-      </div>
-      <ul class="books" id="earlier"></ul>
-    </div>
-
-    <!-- One earlier week -->
-    <div id="one" hidden>
-      <p class="crumb"><button type="button" class="linkish" id="back">&larr; This week</button></p>
-      <div id="one-week"></div>
-      <p class="danger-row">
-        <button type="button" class="linkish danger" id="delete-week">Delete this week</button>
-      </p>
-    </div>
+    <!-- Every Sunday on record. Each opens and closes on its own. -->
+    <ul class="week-list" id="weeks"></ul>
   </section>
 
 </main>
 
 <template id="tpl-week">
   <article class="week">
-    <header class="week-head">
-      <p class="eyebrow w-label"></p>
-      <h3 class="w-date"></h3>
-      <p class="w-day"></p>
-    </header>
-
     <div class="field">
       <span>Lessons</span>
       <ol class="readings"></ol>
@@ -105,7 +89,25 @@
       <button type="button" class="btn btn-primary w-save">Save</button>
       <span class="save-state" role="status"></span>
     </p>
+
+    <p class="danger-row w-delete-row" hidden>
+      <button type="button" class="linkish danger w-delete">Delete this week</button>
+    </p>
   </article>
+</template>
+
+<template id="tpl-week-item">
+  <li class="week-item">
+    <button type="button" class="week-toggle" aria-expanded="false">
+      <span class="week-toggle-text">
+        <span class="eyebrow w-label" hidden></span>
+        <span class="week-title w-date"></span>
+        <span class="week-meta w-meta"></span>
+      </span>
+      <span class="week-chevron" aria-hidden="true"></span>
+    </button>
+    <div class="week-body" hidden></div>
+  </li>
 </template>
 
 <template id="tpl-reading">
@@ -197,8 +199,9 @@
   var data = { version: 1, weeks: [] };
   var link = null;           // the running sync, while the page is unlocked
   var stale = false;         // newer notes arrived while a field had focus
-  var open = null;           // id of the earlier week on screen, if any
-  var shownThis = null;      // the Sunday the page was last drawn for
+  var shownThis = null;      // the coming Sunday when the page was last drawn
+  var SORT_KEY = 'christianity.bulletins.sort';   // this device's choices, not synced
+  var OPEN_KEY = 'christianity.bulletins.open';
 
   function load() {
     try {
@@ -282,19 +285,18 @@
     return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
   }
 
-  function sundayOf(d) {
-    var x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    x.setDate(x.getDate() - x.getDay());
-    return x;
-  }
-
   function plusDays(id, n) {
     var d = fromIso(id);
     d.setDate(d.getDate() + n);
     return iso(d);
   }
 
-  function thisWeek() { return iso(sundayOf(new Date())); }
+  // The Sunday the bulletin is for: today on a Sunday, otherwise the next one.
+  function thisWeek() {
+    var d = new Date();
+    d.setDate(d.getDate() + (7 - d.getDay()) % 7);
+    return iso(d);
+  }
 
   function longDate(id) {
     return fromIso(id).toLocaleDateString('en-US',
@@ -401,7 +403,7 @@
     }
     week.updatedAt = now();
     unsaveNote();
-    if (open === week.id) $('delete-week').parentNode.hidden = false;
+    if (week.redraw) week.redraw();
     save();
   }
 
@@ -510,20 +512,22 @@
   }
 
   // ---- one week ----------------------------------------------------------
-  var unmounts = [];
+  var unmounts = {};         // week id -> what to undo when its notes close
 
-  function buildWeek(id, label) {
-    var week = entry(id);
+  function summary(week) {
+    var bits = [];
+    if (afterPentecost(week.id)) bits.push(afterPentecost(week.id));
+    var passages = week.readings.map(function (r) { return r.passage.trim(); })
+      .filter(function (p) { return p; });
+    if (passages.length) bits.push(passages.join('; '));
+    else if (!isEmpty(week)) bits.push('Notes');
+    return bits.join(' · ');
+  }
+
+  function buildWeek(week) {
+    var id = week.id;
     var node = $('tpl-week').content.firstElementChild.cloneNode(true);
     var list = node.querySelector('.readings');
-
-    node.querySelector('.w-label').textContent = label;
-    node.querySelector('.w-label').hidden = !label;
-    node.querySelector('.w-date').textContent = longDate(id);
-    node.querySelector('.w-day').textContent = afterPentecost(id);
-    node.querySelector('.w-day').hidden = !afterPentecost(id);
-    node.dataset.week = id;
-
 
     function drawReadings() {
       list.textContent = '';
@@ -563,100 +567,134 @@
       saveNow(node.querySelector('.save-state'));
     });
 
+    node.querySelector('.w-delete-row').hidden = !find(id) || !!find(id).deleted;
+    node.querySelector('.w-delete').addEventListener('click', function () {
+      if (!window.confirm('Delete ' + longDate(id) + ' and its notes?')) return;
+      var old = find(id);
+      // Replace with a tombstone so the deletion reaches other devices.
+      if (old) data.weeks[data.weeks.indexOf(old)] = { id: id, deleted: true, updatedAt: now() };
+      saved();
+      render();
+    });
+
     var editor = NotesEditor.build('Notes');
     node.querySelector('.editor-here').replaceWith(editor);
-    unmounts.push(NotesEditor.mount(editor, {
+    unmounts[id] = NotesEditor.mount(editor, {
       get: function () { return week.notes; },
       set: function (html) { week.notes = html; touch(week); }
-    }));
+    });
     return node;
+  }
+
+  // ---- which weeks are open ------------------------------------------------
+  // Remembered on this device. When a new Sunday comes round, the page opens
+  // on it again with the rest closed.
+  var sort = 'newest';
+  var opened = {};
+
+  function loadChoices() {
+    opened = {};
+    try {
+      var chosen = localStorage.getItem(SORT_KEY);
+      if (chosen === 'newest' || chosen === 'oldest') sort = chosen;
+      var kept = JSON.parse(localStorage.getItem(OPEN_KEY) || 'null');
+      if (kept && kept.sunday === thisWeek() && Array.isArray(kept.open)) {
+        kept.open.forEach(function (id) { opened[id] = true; });
+        return;
+      }
+    } catch (e) { /* defaults */ }
+    opened[thisWeek()] = true;
+  }
+
+  function keepChoices() {
+    try {
+      localStorage.setItem(SORT_KEY, sort);
+      localStorage.setItem(OPEN_KEY, JSON.stringify({ sunday: thisWeek(), open: Object.keys(opened) }));
+    } catch (e) { /* this visit only */ }
+  }
+
+  function close(id) {
+    if (unmounts[id]) { unmounts[id](); delete unmounts[id]; }
   }
 
   // ---- the page ----------------------------------------------------------
   function render() {
     stale = false;
     savedNote = null;
-    unmounts.forEach(function (off) { off(); });
-    unmounts = [];
+    Object.keys(unmounts).forEach(close);
 
     var current = thisWeek();
     var next = plusDays(current, 7);
+    if (shownThis && shownThis !== current) loadChoices();
     shownThis = current;
 
-    if (open && (open >= current || (find(open) || {}).deleted)) open = null;
-
-    $('weeks').textContent = '';
-    $('one-week').textContent = '';
-
-    if (open) {
-      $('one-week').appendChild(buildWeek(open, ''));
-      $('delete-week').parentNode.hidden = !find(open);
-      $('home').hidden = true;
-      $('one').hidden = false;
-      return;
-    }
-
-    $('one').hidden = true;
-    $('home').hidden = false;
-    $('weeks').appendChild(buildWeek(current, 'This week'));
-    $('weeks').appendChild(buildWeek(next, 'Next week'));
-
-    var list = $('earlier');
-    list.textContent = '';
-    // Every Sunday from the first bulletin to last week is listed, written up
+    // Every Sunday from the first bulletin to next week is listed, written up
     // or not, so a week that was missed can be opened and filled in.
     var ids = {};
-    for (var id = FIRST_WEEK; id < current; id = plusDays(id, 7)) ids[id] = true;
+    for (var id = FIRST_WEEK; id <= next; id = plusDays(id, 7)) ids[id] = true;
     data.weeks.forEach(function (w) {
-      if (!w.deleted && w.id < current && !isEmpty(entry(w.id))) ids[w.id] = true;
+      if (w && !w.deleted && !ids[w.id] && !isEmpty(entry(w.id))) ids[w.id] = true;
     });
+    var order = Object.keys(ids).sort();
+    if (sort === 'newest') order.reverse();
 
-    Object.keys(ids).sort().reverse().map(entry).forEach(function (w) {
-      var li = document.createElement('li');
-      var row = document.createElement('button');
-      row.type = 'button';
-      row.className = 'book-row';
+    var list = $('weeks');
+    list.textContent = '';
 
-      var title = document.createElement('span');
-      title.className = 'book-title';
-      title.textContent = longDate(w.id);
+    order.forEach(function (id) {
+      var week = entry(id);
+      var item = $('tpl-week-item').content.firstElementChild.cloneNode(true);
+      var toggle = item.querySelector('.week-toggle');
+      var body = item.querySelector('.week-body');
+      var meta = item.querySelector('.w-meta');
+      var label = id === current ? 'This Sunday' : id === next ? 'Next Sunday' : '';
+      item.dataset.week = id;
+      item.querySelector('.w-label').textContent = label;
+      item.querySelector('.w-label').hidden = !label;
+      item.querySelector('.w-date').textContent = longDate(id);
 
-      var meta = document.createElement('span');
-      meta.className = 'book-meta';
-      var bits = [];
-      if (afterPentecost(w.id)) bits.push(afterPentecost(w.id));
-      var passages = w.readings.map(function (r) { return r.passage.trim(); })
-        .filter(function (p) { return p; });
-      if (passages.length) bits.push(passages.join('; '));
-      meta.textContent = bits.length ? bits.join(' \u00b7 ') : 'No notes';
+      // Kept off the stored week: JSON leaves functions out.
+      week.redraw = function () {
+        meta.textContent = summary(week) || 'No notes';
+        var row = body.querySelector('.w-delete-row');
+        if (row) row.hidden = false;
+      };
+      meta.textContent = summary(week) || 'No notes';
 
-      row.appendChild(title);
-      row.appendChild(meta);
-      row.addEventListener('click', function () { go(w.id); });
-      li.appendChild(row);
-      list.appendChild(li);
+      function show(on) {
+        toggle.setAttribute('aria-expanded', String(on));
+        body.hidden = !on;
+        if (on && !body.firstChild) body.appendChild(buildWeek(week));
+        if (!on) { close(id); body.textContent = ''; }
+      }
+
+      toggle.addEventListener('click', function () {
+        var on = toggle.getAttribute('aria-expanded') !== 'true';
+        if (on) opened[id] = true; else delete opened[id];
+        keepChoices();
+        show(on);
+      });
+
+      show(!!opened[id]);
+      list.appendChild(item);
     });
-  }
-
-  function go(id) {
-    open = id && id < thisWeek() ? id : null;
-    render();
-    if (open || !id) { window.scrollTo(0, 0); return; }
-    var panel = document.querySelector('.week[data-week="' + id + '"]');
-    if (panel) panel.scrollIntoView();
   }
 
   // ---- actions -----------------------------------------------------------
-  $('back').addEventListener('click', function () { go(null); });
+  function showSort() {
+    Array.prototype.forEach.call(document.querySelectorAll('.sort-btn'), function (btn) {
+      btn.setAttribute('aria-pressed', String(btn.dataset.sort === sort));
+    });
+  }
 
-  $('delete-week').addEventListener('click', function () {
-    if (!open) return;
-    if (!window.confirm('Delete ' + longDate(open) + ' and its notes?')) return;
-    var week = find(open);
-    // Replace with a tombstone so the deletion reaches other devices.
-    if (week) data.weeks[data.weeks.indexOf(week)] = { id: open, deleted: true, updatedAt: now() };
-    saved();
-    go(null);
+  Array.prototype.forEach.call(document.querySelectorAll('.sort-btn'), function (btn) {
+    btn.addEventListener('click', function () {
+      if (sort === btn.dataset.sort) return;
+      sort = btn.dataset.sort;
+      keepChoices();
+      showSort();
+      render();
+    });
   });
 
   $('export').addEventListener('click', function () {
@@ -694,7 +732,7 @@
       incoming.weeks.forEach(function (w) { if (w) w.updatedAt = stamp; });
       data.weeks = merge(data.weeks, incoming.weeks);
       saved();
-      go(null);
+      render();
     };
     reader.readAsText(file);
     this.value = '';
@@ -711,6 +749,8 @@
 
   function start() {
     load();
+    loadChoices();
+    showSort();
     render();
     connect();
     if (started) return;

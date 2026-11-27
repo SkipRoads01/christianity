@@ -49,8 +49,9 @@
 
     <p class="sort" id="sort" role="group" aria-label="Sort" hidden>
       <span class="sort-label">Sort</span>
-      <button type="button" class="sort-btn" data-sort="recent" aria-pressed="true">Most recent</button>
-      <button type="button" class="sort-btn" data-sort="bible" aria-pressed="false">Bible order</button>
+      <button type="button" class="sort-btn" data-sort="bible" aria-pressed="false">Text order</button>
+      <button type="button" class="sort-btn" data-sort="oldest" aria-pressed="false">Oldest to newest</button>
+      <button type="button" class="sort-btn" data-sort="recent" aria-pressed="true">Newest to oldest</button>
     </p>
 
     <p class="empty" id="empty" hidden>No passages yet.</p>
@@ -132,17 +133,21 @@
       p.note = typeof p.note === 'string' ? p.note : '';
       p.createdAt = Number(p.createdAt) || Number(p.updatedAt) || 0;
       return p;
-    }).sort(order === 'bible' ? byBible : byRecent);
+    }).sort(order === 'bible' ? byBible : order === 'oldest' ? byOldest : byRecent);
   }
 
   // ---- order -------------------------------------------------------------
-  // Most recent first, or in the order of the books of the Bible. The choice
+  // In the order of the books of the Bible, oldest first, or newest first. The choice
   // is kept on this device and is not part of what syncs.
   var ORDER_KEY = 'christianity.passages.sort';
   var order = 'recent';
-  try { if (localStorage.getItem(ORDER_KEY) === 'bible') order = 'bible'; } catch (e) { /* default */ }
+  try {
+    var kept = localStorage.getItem(ORDER_KEY);
+    if (kept === 'bible' || kept === 'oldest') order = kept;
+  } catch (e) { /* default */ }
 
   function byRecent(a, b) { return b.createdAt - a.createdAt; }
+  function byOldest(a, b) { return a.createdAt - b.createdAt; }
 
   // An entry with no reference yet, or one that cannot be read, comes first,
   // where a new entry is expected and a mistyped one is seen.
