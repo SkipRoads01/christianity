@@ -46,8 +46,8 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   State lives in `localStorage` under
   `christianity.bulletins.v1` and syncs through `sync.js`. The other pages show
   the Bulletins nav link only on an unlocked device.
-- `passages.html` — favorite passages. Each entry is a reference and a short
-  note, and prints its King James text the way a Bulletins reading does.
+- `passages.html` — favorite passages. Each entry is a reference and a note
+  written in the `editor.js` editor, and prints its King James text the way a Bulletins reading does.
   The list sorts in text order (the order of the books of the Bible), oldest
   first, or newest first; the
   choice is kept per device and does not sync. State lives in `localStorage` under `christianity.passages.v1`
@@ -66,7 +66,7 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   so a visitor sees the course and no form. State lives in `localStorage`
   under `christianity.ptsem.v1`, one list for every course, and syncs through
   `sync.js`.
-- `editor.js` — the notes editor Bulletins and the course pages share: bold,
+- `editor.js` — the notes editor Bulletins, Passages, and the course pages share: bold,
   italic, highlight, lists, quotation, links, and a note attached to a
   selection. It also holds the tag allowlist every note passes through on
   read and write. Research has an older editor of its own.

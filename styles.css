@@ -1008,7 +1008,7 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .tb:hover, .tb:focus-visible { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 .tb-mark { background: var(--accent-soft); }
 
-.chapter .c-notes, .week .c-notes {
+.chapter .c-notes, .week .c-notes, .fav .c-notes {
   font-family: var(--serif);
   font-size: 0.9375rem;
   line-height: 1.6;
@@ -1318,6 +1318,8 @@ input::placeholder, textarea::placeholder { color: var(--faint); }
 .fav:first-child { border-top: 1px solid var(--rule); }
 .fav .f-passage { flex: 1 1 auto; min-width: 0; }
 .fav .f-note { margin-top: 0.6rem; }
+.fav .c-notes { min-height: 3.5rem; }
+.fav .toolbar { flex-wrap: wrap; }
 .fav .passage { margin-bottom: 0; }
 
 /* The text of a reading, printed under its row. */

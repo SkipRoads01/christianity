@@ -71,12 +71,13 @@
       <div class="passage-text"></div>
     </details>
     <p class="passage-none" hidden>No King James passage matches this.</p>
-    <textarea class="f-note" rows="2" placeholder="Note" aria-label="Note"></textarea>
+    <div class="f-note editor-here"></div>
   </li>
 </template>
 
 <script src="sync.js"></script>
 <script src="passages.js"></script>
+<script src="editor.js"></script>
 <script>
 (function () {
   'use strict';
@@ -130,7 +131,7 @@
   function live() {
     return data.passages.filter(function (p) { return p && !p.deleted; }).map(function (p) {
       p.passage = typeof p.passage === 'string' ? p.passage : '';
-      p.note = typeof p.note === 'string' ? p.note : '';
+      p.note = asHtml(typeof p.note === 'string' ? p.note : '');
       p.createdAt = Number(p.createdAt) || Number(p.updatedAt) || 0;
       return p;
     }).sort(order === 'bible' ? byBible : order === 'oldest' ? byOldest : byRecent);
@@ -258,28 +259,32 @@
     row.printTimer = setTimeout(function () { print(row, typed); }, PRINT_MS);
   }
 
-  // ---- the page ----------------------------------------------------------
-  // A note is as tall as its text, so it never scrolls inside its own box.
-  // The borders are added back because scrollHeight leaves them out.
-  function fit(area) {
-    area.style.overflow = 'hidden';
-    area.style.resize = 'none';
-    area.style.height = 'auto';
-    area.style.height = (area.scrollHeight + area.offsetHeight - area.clientHeight) + 'px';
+  // ---- notes --------------------------------------------------------------
+  // Notes are HTML from editor.js, which checks every note on read and write.
+  // Notes written before the editor are plain text: each line becomes a
+  // paragraph. The stored note changes the next time it is edited.
+  function asHtml(note) {
+    if (!note || /<\/?(p|br|b|strong|i|em|mark|ul|ol|li|blockquote|div|a|span)\b[^>]*>/i.test(note)) return note;
+    return note.split(/\n/).filter(function (line) { return line.trim(); }).map(function (line) {
+      var p = document.createElement('p');
+      p.textContent = line;
+      return p.outerHTML;
+    }).join('');
   }
 
-  function fitAll() {
-    Array.prototype.forEach.call(document.querySelectorAll('.f-note'), fit);
+  function noteText(note) {
+    return NotesEditor.clean(note).textContent.trim();
   }
+
+  // ---- the page ----------------------------------------------------------
+  var unmounts = [];
 
   function build(item) {
     var row = $('tpl-passage').content.firstElementChild.cloneNode(true);
     var passage = row.querySelector('.f-passage');
-    var note = row.querySelector('.f-note');
     row.dataset.id = item.id;
 
     passage.value = item.passage;
-    note.value = item.note;
 
     passage.addEventListener('input', function () {
       item.passage = this.value;
@@ -290,15 +295,17 @@
       if (order === 'bible') stale = true;
     });
 
-    note.addEventListener('input', function () {
-      item.note = this.value;
-      touch(item);
-      fit(this);
-    });
+    var editor = NotesEditor.build('Note');
+    editor.classList.add('f-note');
+    row.querySelector('.editor-here').replaceWith(editor);
+    unmounts.push(NotesEditor.mount(editor, {
+      get: function () { return item.note; },
+      set: function (html) { item.note = html; touch(item); }
+    }));
 
     row.querySelector('.f-del').addEventListener('click', function () {
       var label = item.passage.trim();
-      if ((label || item.note.trim()) &&
+      if ((label || noteText(item.note)) &&
           !window.confirm(label ? 'Remove ' + label + '?' : 'Remove this passage?')) return;
       // Replace with a tombstone so the removal reaches other devices.
       data.passages[data.passages.indexOf(item)] = { id: item.id, deleted: true, updatedAt: now() };
@@ -312,13 +319,14 @@
 
   function render() {
     stale = false;
+    unmounts.forEach(function (off) { off(); });
+    unmounts = [];
     var items = live();
     var list = $('list');
     list.textContent = '';
     items.forEach(function (item) { list.appendChild(build(item)); });
     $('empty').hidden = items.length > 0;
     showOrder(items.length);
-    fitAll();      // only once the notes are on the page do they have a height
   }
 
   // ---- actions -----------------------------------------------------------
@@ -379,8 +387,6 @@
 
   setInterval(function () { if (stale && !typing()) render(); }, 5000);
   window.addEventListener('focus', function () { if (stale && !typing()) render(); });
-  // A narrower or wider window rewraps the notes.
-  window.addEventListener('resize', fitAll);
   // Leaving the page: do not wait out the save delay.
   window.addEventListener('pagehide', function () { if (saveTimer) saved(); });
   document.addEventListener('visibilitychange', function () {
