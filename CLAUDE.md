@@ -67,8 +67,9 @@ dependencies. Serve locally with `python3 -m http.server 8000`.
   under `christianity.ptsem.v1`, one list for every course, and syncs through
   `sync.js`.
 - `editor.js` — the notes editor Bulletins, Passages, and the course pages share: bold,
-  italic, highlight, lists, quotation, links, and a note attached to a
-  selection. It also holds the tag allowlist every note passes through on
+  italic, highlight, lists, quotation, links, a note attached to a
+  selection, a Clear button that removes every kind of formatting from the
+  selection or the paragraph the caret is in, and its own undo and redo. It also holds the tag allowlist every note passes through on
   read and write. Research has an older editor of its own.
 - `passages.js` — reads a reference such as `Luke 21:5-19` or
   `1 Cor 15:20-26, 28` and prints the verses. It knows the short forms of the

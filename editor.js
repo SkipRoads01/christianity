@@ -106,6 +106,8 @@
       '<button type="button" class="tb tb-word" data-cmd="link" title="Link">Link</button>' +
       '<button type="button" class="tb tb-word" data-cmd="note" title="Note on the selected text">Note</button>' +
       '<button type="button" class="tb" data-cmd="clear" title="Clear formatting">&#10005;</button>' +
+      '<button type="button" class="tb" data-cmd="undo" title="Undo">&#8630;</button>' +
+      '<button type="button" class="tb" data-cmd="redo" title="Redo">&#8631;</button>' +
     '</div>' +
     '<div class="ctx" hidden>' +
       '<a class="ctx-url" target="_blank" rel="noopener noreferrer" hidden></a>' +
@@ -150,9 +152,50 @@
 
     notes.innerHTML = sanitize(store.get());
 
+    // ---- undo ------------------------------------------------------------
+    // The editor keeps its own history, because the browser's undo misses
+    // the changes made here by hand, such as a highlight or a cleared quote.
+    // Typing in one burst counts as one step. The history lasts as long as
+    // the page is open.
+    var history = [notes.innerHTML];
+    var at = 0;
+    var lastTyped = 0;
+
+    function record(typed) {
+      var html = notes.innerHTML;
+      if (html === history[at]) return;
+      var stamp = Date.now();
+      if (typed && lastTyped && stamp - lastTyped < 1000 && at === history.length - 1 && at > 0) {
+        history[at] = html;                  // still the same burst of typing
+      } else {
+        history = history.slice(0, at + 1);
+        history.push(html);
+        if (history.length > 200) history.shift();
+        at = history.length - 1;
+      }
+      lastTyped = typed ? stamp : 0;
+    }
+
+    function step(by) {
+      var to = at + by;
+      if (to < 0 || to >= history.length) return;
+      at = to;
+      lastTyped = 0;
+      notes.innerHTML = history[at];
+      notes.focus();
+      var r = document.createRange();
+      r.selectNodeContents(notes);
+      r.collapse(false);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(r);
+      store.set(sanitize(notes.innerHTML));
+    }
+
     function commit() {
       var html = sanitize(notes.innerHTML);
       if (!html && notes.innerHTML) notes.innerHTML = '';
+      record(false);
       store.set(html);
     }
 
@@ -342,21 +385,83 @@
       }
     }
 
+    // ---- clearing ----------------------------------------------------------
+    var INLINE = /^(B|STRONG|I|EM|MARK|A|SPAN|U|S|FONT)$/;
+
+    // The paragraphs, list items, and quotations directly inside the notes
+    // that the selection touches, or the one the caret is in.
+    function blocksIn(r) {
+      var out = [];
+      Array.prototype.forEach.call(notes.childNodes, function (n) {
+        if (r.intersectsNode(n)) out.push(n);
+      });
+      return out;
+    }
+
+    // A quotation or a list becomes plain paragraphs.
+    function flatten(block) {
+      if (block.nodeType !== 1 || !/^(BLOCKQUOTE|UL|OL)$/.test(block.tagName)) return;
+      var parts = block.tagName === 'BLOCKQUOTE'
+        ? Array.prototype.slice.call(block.childNodes)
+        : Array.prototype.slice.call(block.querySelectorAll('li'));
+      var loose = null;
+      parts.forEach(function (part) {
+        var inline = part.nodeType !== 1 || !/^(P|DIV|LI|UL|OL|BLOCKQUOTE)$/.test(part.tagName);
+        if (inline) {
+          if (!loose) { loose = document.createElement('p'); block.parentNode.insertBefore(loose, block); }
+          loose.appendChild(part);
+          return;
+        }
+        loose = null;
+        var p = document.createElement('p');
+        while (part.firstChild) p.appendChild(part.firstChild);
+        block.parentNode.insertBefore(p, block);
+      });
+      block.parentNode.removeChild(block);
+    }
+
+    // Remove every kind of formatting from what is selected. With nothing
+    // selected, clear the paragraph the caret is in.
+    function clearAll() {
+      var r = range();
+      if (!r) return;
+      if (r.collapsed) {
+        var block = r.startContainer;
+        while (block.parentNode && block.parentNode !== notes) block = block.parentNode;
+        if (block === notes) return;
+        r = document.createRange();
+        r.selectNode(block);
+      }
+      var blocks = blocksIn(r);
+      var inline = [];
+      blocks.forEach(function (b) {
+        if (b.nodeType !== 1) return;
+        if (INLINE.test(b.tagName)) inline.push(b);
+        Array.prototype.forEach.call(b.querySelectorAll('*'), function (el) {
+          if (INLINE.test(el.tagName) && r.intersectsNode(el)) inline.push(el);
+        });
+      });
+      inline.forEach(function (el) { if (el.parentNode) unwrap(el); });
+      blocks.forEach(flatten);
+      notes.normalize();
+    }
+
     function exec(cmd) {
+      if (cmd === 'undo') return step(-1);
+      if (cmd === 'redo') return step(1);
       if (cmd === 'link' || cmd === 'note') return ask(cmd);
       if (cmd === 'mark') {
         var existing = around(isMark);
         if (existing) unwrap(existing);
         else if (wrap(document.createElement('mark'))) window.getSelection().collapseToEnd();
       } else if (cmd === 'blockquote') {
-        block(function () { document.execCommand('formatBlock', false, 'blockquote'); });
+        var quote = around(function (n) { return n.tagName === 'BLOCKQUOTE'; });
+        if (quote) flatten(quote);           // a second press takes the quotation off
+        else block(function () { document.execCommand('formatBlock', false, 'blockquote'); });
       } else if (cmd === 'insertUnorderedList' || cmd === 'insertOrderedList') {
         block(function () { document.execCommand(cmd); });
       } else if (cmd === 'clear') {
-        document.execCommand('removeFormat');
-        document.execCommand('unlink');
-        var m = around(isMark) || around(isNote);
-        if (m) unwrap(m);
+        clearAll();
       } else {
         document.execCommand(cmd);
       }
@@ -365,7 +470,14 @@
     }
 
     notes.addEventListener('input', function () {
+      record(true);
       store.set(sanitize(notes.innerHTML));
+    });
+
+    // Undo and redo from the keyboard, or from a browser's Edit menu.
+    notes.addEventListener('beforeinput', function (e) {
+      if (e.inputType === 'historyUndo') { e.preventDefault(); step(-1); }
+      if (e.inputType === 'historyRedo') { e.preventDefault(); step(1); }
     });
 
     // Paste as plain text, so copying from a web page does not drag its
@@ -390,9 +502,14 @@
     });
 
     notes.addEventListener('keydown', function (e) {
-      if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'k') {
+      var key = e.key.toLowerCase();
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && key === 'k') {
         e.preventDefault();
         ask('link');
+      }
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && (key === 'z' || key === 'y')) {
+        e.preventDefault();
+        step(key === 'y' || e.shiftKey ? 1 : -1);
       }
     });
 
