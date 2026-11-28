@@ -47,7 +47,7 @@
       </div>
     </div>
 
-    <p class="sort" id="sort" role="group" aria-label="Sort" hidden>
+    <p class="sort" id="sort" role="group" aria-label="Sort">
       <span class="sort-label">Sort</span>
       <button type="button" class="sort-btn" data-sort="bible" aria-pressed="false">Text order</button>
       <button type="button" class="sort-btn" data-sort="oldest" aria-pressed="false">Oldest to newest</button>
@@ -158,7 +158,6 @@
   }
 
   function showOrder(count) {
-    $('sort').hidden = count < 2;           // nothing to sort
     Array.prototype.forEach.call(document.querySelectorAll('.sort-btn'), function (btn) {
       btn.setAttribute('aria-pressed', String(btn.dataset.sort === order));
     });
